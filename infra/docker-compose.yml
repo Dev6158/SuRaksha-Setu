@@ -1,0 +1,111 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: suraksha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: suraksha-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    container_name: suraksha-backend
+    restart: unless-stopped
+    build:
+      context: ../orchestrator-backend
+      dockerfile: Dockerfile
+    ports:
+      - "${SPRING_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    networks:
+      - suraksha-network
+    # Requires Spring Boot Actuator endpoint:
+    # management.endpoints.web.exposure.include=health
+    # management.endpoint.health.show-details=always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  ml-service:
+    container_name: suraksha-ml
+    restart: unless-stopped
+    build:
+      context: ../ai-ml-service
+      dockerfile: Dockerfile
+    ports:
+      - "${FASTAPI_PORT}:8000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  dashboard:
+    container_name: suraksha-dashboard
+    restart: unless-stopped
+    build:
+      context: ../admin-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "${NEXT_PORT}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - suraksha-network
+
+volumes:
+  postgres_data:
+
+networks:
+  suraksha-network:
+    driver: bridge

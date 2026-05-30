@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -54,6 +54,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.suraksha.Setu.Entity.User;
+import com.suraksha.Setu.Repo.UserRepository;
 
 @Configuration
 @EnableWebSecurity

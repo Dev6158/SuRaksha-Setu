@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Controller;
 
 import jakarta.validation.Valid;
 import java.util.Map;
@@ -12,6 +12,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.suraksha.Setu.Config.JwtTokenService;
+import com.suraksha.Setu.Entity.User;
+import com.suraksha.Setu.Repo.UserRepository;
+import com.suraksha.Setu.dto.AuthResponse;
+import com.suraksha.Setu.dto.LoginRequest;
 
 @RestController
 @RequestMapping("/api/v1/auth")

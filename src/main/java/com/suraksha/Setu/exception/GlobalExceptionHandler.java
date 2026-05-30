@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import java.time.OffsetDateTime;

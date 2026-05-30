@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Websocket;
 
 import java.io.IOException;
 import java.time.Duration;

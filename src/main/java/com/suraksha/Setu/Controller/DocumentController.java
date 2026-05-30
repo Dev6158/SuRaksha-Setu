@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Controller;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -14,6 +14,12 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.suraksha.Setu.Entity.DocumentForensicLog;
+import com.suraksha.Setu.Entity.User;
+import com.suraksha.Setu.Repo.DocumentRepository;
+import com.suraksha.Setu.Repo.UserRepository;
+import com.suraksha.Setu.dto.DocumentUploadDto;
 
 @RestController
 @RequestMapping("/api/v1/forensics/documents")

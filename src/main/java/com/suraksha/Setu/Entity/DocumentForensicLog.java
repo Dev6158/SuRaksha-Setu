@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

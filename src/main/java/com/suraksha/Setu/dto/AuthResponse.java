@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.dto;
 
 public class AuthResponse {
 

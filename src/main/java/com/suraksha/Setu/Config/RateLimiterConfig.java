@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.Config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

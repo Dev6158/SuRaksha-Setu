@@ -1,4 +1,4 @@
-package com.suraksha.Setu;
+package com.suraksha.Setu.dto;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

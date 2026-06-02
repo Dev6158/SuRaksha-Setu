@@ -36,12 +36,15 @@ services:
       timeout: 5s
       retries: 5
 
+# TODO:
+# Update backend and ml-service build contexts
+# after final repository structure is agreed by team.
   backend:
     container_name: suraksha-backend
     restart: unless-stopped
-    build:
-      context: ../orchestrator-backend
-      dockerfile: Dockerfile
+    #build:
+      #context: ../orchestrator-backend
+      #dockerfile: Dockerfile
     ports:
       - "${SPRING_PORT}:8080"
     depends_on:
@@ -72,9 +75,9 @@ services:
   ml-service:
     container_name: suraksha-ml
     restart: unless-stopped
-    build:
-      context: ../ai-ml-service
-      dockerfile: Dockerfile
+    #build:
+      #context: ../ai-ml-service
+      #dockerfile: Dockerfile
     ports:
       - "${FASTAPI_PORT}:8000"
     depends_on:

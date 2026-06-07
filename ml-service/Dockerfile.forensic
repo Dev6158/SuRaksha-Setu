@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 1 — dependency builder
+# ─────────────────────────────────────────────────────────────────────────────
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        gcc \
+        g++ \
+        libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+# opencv-python-headless replaces opencv-python (no display server in container)
+RUN pip install --no-cache-dir --prefix=/install \
+        opencv-python-headless \
+        -r requirements.txt
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2 — final runtime image
+#   No model pre-bake step needed: forensic_engine.py is stateless — it
+#   performs ELA and FFT analysis on each uploaded image at request time.
+# ─────────────────────────────────────────────────────────────────────────────
+FROM python:3.11-slim AS runtime
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        libgomp1 \
+        libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN useradd --create-home --shell /bin/bash mluser
+
+WORKDIR /app
+
+COPY --from=builder /install /usr/local
+
+# Application source — forensic engine + shared utilities
+COPY forensic_engine.py utils.py ./
+
+RUN chown -R mluser:mluser /app
+USER mluser
+
+EXPOSE 8000
+
+# Healthcheck — matches GET /healthz in forensic_engine.py
+HEALTHCHECK --interval=20s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')" || exit 1
+
+CMD ["uvicorn", "forensic_engine:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "4", \
+     "--log-level", "info", \
+     "--access-log"]

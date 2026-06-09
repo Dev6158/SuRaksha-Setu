@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'services/api_service.dart';
 import 'views/auth/login_view.dart';
 import 'views/auth/registration_view.dart';
 import 'views/dashboard/home_portal_view.dart';
@@ -8,6 +9,7 @@ import 'views/document/upload_wizard_view.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
+  await AuthTokenStore.load();
   runApp(const SuRakshaSetu());
 }
 
@@ -70,7 +72,8 @@ class SuRakshaSetu extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: Color(0xFF1A3A6B), width: 2),
+            borderSide:
+                const BorderSide(color: Color(0xFF1A3A6B), width: 2),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),

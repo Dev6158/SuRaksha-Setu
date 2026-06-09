@@ -2,14 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // ---------------------------------------------------------------------------
 // API configuration
 // ---------------------------------------------------------------------------
 
-/// Replace with your actual backend base URL.
-/// On Android emulator: http://10.0.2.2:8080
-/// On iOS simulator:    http://127.0.0.1:8080
 const String kBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
   defaultValue: 'http://10.0.2.2:8080',
@@ -19,7 +17,7 @@ const Duration _kConnectTimeout = Duration(seconds: 10);
 const Duration _kReceiveTimeout = Duration(seconds: 20);
 
 // ---------------------------------------------------------------------------
-// ApiResponse — typed wrapper around every HTTP call
+// ApiResponse
 // ---------------------------------------------------------------------------
 
 class ApiResponse<T> {
@@ -37,27 +35,41 @@ class ApiResponse<T> {
 }
 
 // ---------------------------------------------------------------------------
-// AuthTokenStore — in-memory token holder (swap for flutter_secure_storage)
+// AuthTokenStore — persisted via flutter_secure_storage
 // ---------------------------------------------------------------------------
 
 class AuthTokenStore {
+  static const _storage = FlutterSecureStorage();
   static String? _accessToken;
   static String? _refreshToken;
 
   static String? get accessToken => _accessToken;
   static String? get refreshToken => _refreshToken;
+  static bool get hasToken => _accessToken != null;
 
-  static void save({required String access, required String refresh}) {
+  /// Call once at app startup in main() to restore tokens after app restart.
+  static Future<void> load() async {
+    _accessToken = await _storage.read(key: 'access_token');
+    _refreshToken = await _storage.read(key: 'refresh_token');
+  }
+
+  /// Call after successful login or register.
+  static Future<void> save({
+    required String access,
+    required String refresh,
+  }) async {
     _accessToken = access;
     _refreshToken = refresh;
+    await _storage.write(key: 'access_token', value: access);
+    await _storage.write(key: 'refresh_token', value: refresh);
   }
 
-  static void clear() {
+  /// Call on logout.
+  static Future<void> clear() async {
     _accessToken = null;
     _refreshToken = null;
+    await _storage.deleteAll();
   }
-
-  static bool get hasToken => _accessToken != null;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,12 +81,11 @@ class ApiService {
   factory ApiService() => _instance;
   ApiService._internal();
 
-  // ---- internal helpers ----------------------------------------------------
-
   Map<String, String> get _authHeaders => {
         HttpHeaders.contentTypeHeader: 'application/json',
         if (AuthTokenStore.hasToken)
-          HttpHeaders.authorizationHeader: 'Bearer ${AuthTokenStore.accessToken}',
+          HttpHeaders.authorizationHeader:
+              'Bearer ${AuthTokenStore.accessToken}',
       };
 
   Future<HttpClient> _client() async {
@@ -137,18 +148,18 @@ class ApiService {
         return ApiResponse.failure(message, statusCode: response.statusCode);
       }
     } on SocketException {
-      return const ApiResponse.failure('No internet connection. Please check your network.');
+      return const ApiResponse.failure(
+          'No internet connection. Please check your network.');
     } on HttpException catch (e) {
       return ApiResponse.failure('Network error: ${e.message}');
     } on FormatException {
-      return const ApiResponse.failure('Unexpected server response. Please try again.');
+      return const ApiResponse.failure(
+          'Unexpected server response. Please try again.');
     } catch (e) {
       debugPrint('[ApiService] Unexpected error: $e');
       return ApiResponse.failure('Something went wrong. Please try again.');
     }
   }
-
-  // ---- public API ----------------------------------------------------------
 
   Future<ApiResponse<Map<String, dynamic>>> get(String path) =>
       _request(method: 'GET', path: path);
@@ -173,8 +184,6 @@ class ApiService {
 
   Future<ApiResponse<Map<String, dynamic>>> delete(String path) =>
       _request(method: 'DELETE', path: path);
-
-  // ---- multipart (for file uploads) ----------------------------------------
 
   Future<ApiResponse<Map<String, dynamic>>> uploadFile({
     required String path,
@@ -206,14 +215,12 @@ class ApiService {
 
       final buffer = StringBuffer();
 
-      // Add extra fields
       fields?.forEach((key, value) {
         buffer.write('--$boundary\r\n');
         buffer.write('Content-Disposition: form-data; name="$key"\r\n\r\n');
         buffer.write('$value\r\n');
       });
 
-      // File part header
       buffer.write('--$boundary\r\n');
       buffer.write(
         'Content-Disposition: form-data; name="$fieldName"; filename="$fileName"\r\n',

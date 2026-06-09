@@ -1,139 +1,68 @@
-# SuRaksha Setu - DevOps & Infrastructure Documentation
+# SuRaksha Setu - DevOps & Infrastructure Guide
 
-## Project Overview
+## Overview
 
-SuRaksha Setu is a multi-service banking security platform being developed using separate team branches for Backend, Frontend, AI/ML, and DevOps.
+SuRaksha Setu is a multi-service banking fraud detection and security platform developed collaboratively across Backend, Frontend, AI/ML, and DevOps teams.
 
-This branch (`devops-amrita`) contains the infrastructure setup required to deploy and integrate all services once development is completed.
+The `devops-amrita` branch provides the infrastructure and deployment foundation required to integrate, configure, and run all project services in a unified environment.
 
-The goal of this branch is to provide:
+Current DevOps deliverables include:
 
-* Environment management
-* Docker-based deployment
-* Secrets management
-* Service orchestration
-* Integration testing support
-
----
-
-# Team Structure
-
-## Backend Team
-
-Responsible for:
-
-* Spring Boot API
-* Authentication
-* Database interaction
-* WebSocket communication
-* Business logic
-
-Expected service:
-
-```text
-Spring Boot Application
-```
+* Docker Compose orchestration
+* PostgreSQL deployment
+* Redis deployment
+* Environment variable management
+* Secrets setup automation
+* Health check configuration
+* CI/CD workflow setup
+* OpenAPI placeholder documentation
+* Integration testing scaffolding
 
 ---
 
-## Frontend Team
-
-Responsible for:
-
-* User Interface
-* Dashboard
-* Authentication Screens
-* Real-time Monitoring
-
-Expected service:
-
-```text
-Next.js / Flutter Frontend
-```
-
----
-
-## AI/ML Team
-
-Responsible for:
-
-* Behavioral Analytics
-* Fraud Detection
-* Risk Scoring
-* Document Analysis
-
-Expected service:
-
-```text
-Python / FastAPI Service
-```
-
----
-
-## DevOps Team
-
-Responsible for:
-
-* Docker configuration
-* Environment variables
-* Deployment automation
-* Secrets generation
-* Integration support
-
----
-
-# Current Repository Structure
+# Repository Structure
 
 ```text
 SuRaksha-Setu/
 │
 ├── .github/
+│   └── workflows/
+│       └── deploy.yml
 │
 ├── admin-dashboard/
 │
 ├── infra/
 │   ├── docker-compose.yml
 │   ├── .env.example
-│   ├── setup_secrets.sh
-│   └── prometheus.yml
+│   └── setup_secrets.sh
 │
 ├── integration-tests/
+│   └── test_system_integration.py
 │
-├── Makefile
 ├── openapi_spec.yaml
+├── requirements.txt
+├── pom.xml
 └── README.md
 ```
 
 ---
 
-# Infrastructure Folder Explanation
+# Infrastructure Components
 
-The entire deployment configuration is stored inside:
+## PostgreSQL
+
+Container:
 
 ```text
-infra/
+suraksha-postgres
 ```
-
-This folder contains all files needed to start and configure project services.
-
----
-
-## docker-compose.yml
 
 Purpose:
 
-Manage and run all services using a single command.
-
-Services configured:
-
-### PostgreSQL
-
-Stores:
-
-* User data
-* Transactions
-* Fraud reports
-* Application records
+* User information
+* Fraud logs
+* Analytics records
+* Application data
 
 Port:
 
@@ -141,16 +70,28 @@ Port:
 5432
 ```
 
+Health Check:
+
+```text
+pg_isready
+```
+
 ---
 
-### Redis
+## Redis
 
-Used for:
+Container:
 
+```text
+suraksha-redis
+```
+
+Purpose:
+
+* Session management
 * Caching
-* Session storage
-* Rate limiting
-* Temporary data
+* Temporary storage
+* Rate limiting support
 
 Port:
 
@@ -158,157 +99,118 @@ Port:
 6379
 ```
 
----
-
-### Backend Service
-
-Reserved for:
+Health Check:
 
 ```text
-Spring Boot Application
+redis-cli ping
+```
+
+---
+
+## Backend Service
+
+Framework:
+
+```text
+Spring Boot
 ```
 
 Responsibilities:
 
 * Authentication
-* API handling
-* Database communication
+* JWT management
+* Database operations
+* WebSocket communication
+* API orchestration
 
----
-
-### AI/ML Service
-
-Reserved for:
+Default Port:
 
 ```text
-Python / FastAPI Service
+8080
 ```
-
-Responsibilities:
-
-* Risk scoring
-* Behavioral analytics
-* Fraud detection
 
 ---
 
-### Dashboard
+## AI/ML Services
 
-Reserved for:
+Framework:
 
 ```text
-Admin Dashboard
+FastAPI
 ```
 
-Responsibilities:
+Current Services Identified:
 
-* Display risk scores
-* Monitoring
-* System administration
+### Behavioral Analytics
 
----
-
-# Environment Variables
-
-## Why Environment Variables?
-
-Sensitive information should never be hardcoded.
-
-Examples:
-
-* Database passwords
-* JWT secrets
-* API endpoints
-
-Environment variables allow different developers to use different values without modifying source code.
-
----
-
-# .env.example
-
-File:
+Endpoints:
 
 ```text
-infra/.env.example
+GET  /health
+POST /score
+POST /train
+GET  /user/{user_id}/status
 ```
+
+### Forensic Analysis
+
+Endpoints:
+
+```text
+GET  /healthz
+POST /api/v1/forensics/analyze
+```
+
+---
+
+## Dashboard
 
 Purpose:
 
-Template for developers.
+* Administrative monitoring
+* Risk visualization
+* Fraud analysis dashboards
 
-Before running the project:
+Default Port:
+
+```text
+3000
+```
+
+---
+
+# Environment Configuration
+
+## Setup
+
+Copy:
 
 ```bash
 cp infra/.env.example infra/.env
 ```
 
-and update values.
+Update values before running the project.
 
 ---
 
-## Variable Explanation
+## Important Variables
 
-### PostgreSQL
+### Database
 
 ```env
 POSTGRES_DB
-```
-
-Database name.
-
----
-
-```env
 POSTGRES_USER
-```
-
-Database username.
-
----
-
-```env
 POSTGRES_PASSWORD
-```
-
-Database password.
-
----
-
-### Backend Database Connection
-
-```env
 DB_HOST
-```
-
-Database host.
-
----
-
-```env
 DB_PORT
 ```
-
-Database port.
-
----
 
 ### Redis
 
 ```env
 REDIS_HOST
-```
-
-Redis server host.
-
----
-
-```env
 REDIS_PORT
 ```
-
-Redis server port.
-
----
 
 ### Security
 
@@ -316,248 +218,140 @@ Redis server port.
 JWT_SECRET
 ```
 
-Secret key used for JWT token generation and validation.
-
-Must never be committed to GitHub.
+Never commit production secrets to GitHub.
 
 ---
 
-### Frontend
+# Local Development Setup
 
-```env
-NEXT_PUBLIC_API_URL
+## Start Infrastructure
+
+```bash
+cd infra
+
+docker compose up -d postgres redis
 ```
 
-Backend API URL used by the dashboard.
+Verify:
 
----
-
-### Ports
-
-```env
-SPRING_PORT
+```bash
+docker ps
 ```
 
-Backend port.
-
----
-
-```env
-FASTAPI_PORT
-```
-
-AI/ML service port.
-
----
-
-```env
-NEXT_PORT
-```
-
-Dashboard port.
-
----
-
-# setup_secrets.sh
-
-Purpose:
-
-Generate configuration files automatically from environment variables.
-
-This prevents developers from manually creating configuration files.
-
----
-
-## Backend Configuration Generated
-
-File:
+Expected containers:
 
 ```text
-src/main/resources/application-prod.yml
+suraksha-postgres
+suraksha-redis
 ```
-
-Generated values:
-
-* PostgreSQL connection
-* Redis connection
-* JWT secret
-
-Used during production deployment.
 
 ---
 
-## AI/ML Configuration Generated
+## Run Backend
 
-File:
+```bash
+mvn spring-boot:run
+```
+
+Backend URL:
 
 ```text
-aiml.env
-```
-
-Contains:
-
-* Database credentials
-* Redis credentials
-* JWT configuration
-
-This file can later be imported into the final AI/ML service.
-
----
-
-# Makefile
-
-Purpose:
-
-Provide simple commands for developers.
-
-Instead of:
-
-```bash
-docker compose -f infra/docker-compose.yml up -d
-```
-
-developers can run:
-
-```bash
-make up
+http://localhost:8080
 ```
 
 ---
 
-## Available Commands
-
-### Build Services
+## Run AI/ML Service
 
 ```bash
-make build
-```
+pip install -r requirements.txt
 
-Build and start all containers.
+uvicorn behavioral_analytics_engine:app --host 0.0.0.0 --port 8000
+```
 
 ---
 
-### Start Services
+# Health Checks
+
+## PostgreSQL
 
 ```bash
-make up
+docker exec -it suraksha-postgres pg_isready
 ```
 
-Start containers.
-
----
-
-### Stop Services
+## Redis
 
 ```bash
-make down
+docker exec -it suraksha-redis redis-cli ping
 ```
 
-Stop containers.
-
----
-
-### Restart Services
-
-```bash
-make restart
-```
-
-Restart containers.
-
----
-
-### View Logs
-
-```bash
-make logs
-```
-
-Show live container logs.
-
----
-
-### List Containers
-
-```bash
-make ps
-```
-
-Display running containers.
-
----
-
-### Cleanup
-
-```bash
-make clean
-```
-
-Remove containers, networks and unused Docker resources.
-
----
-
-# Deployment Workflow
-
-When all branches are merged:
+## Behavioral Analytics
 
 ```text
-Backend
-     +
-Frontend
-     +
-AI/ML
-     +
-DevOps
-     ↓
-Integration Branch
-     ↓
-Main Branch
+GET /health
 ```
 
-Expected deployment flow:
+## Forensics Service
 
 ```text
-1. Configure .env
-2. Generate secrets
-3. Build services
-4. Start Docker containers
-5. Verify health checks
-6. Run integration tests
-7. Deploy
+GET /healthz
 ```
 
 ---
 
-# Current Status
+# CI/CD
 
-## Completed
+GitHub Actions workflow:
 
-* Docker Compose setup
-* Environment variable template
-* Secrets generation script
-* Makefile automation
-* Service definitions
-* Integration test structure
+```text
+.github/workflows/deploy.yml
+```
 
-## Pending
+Pipeline validates:
 
-* Backend integration
-* AI/ML integration
-* Frontend integration
-* Final deployment validation
+* Spring Boot build
+* Python dependency installation
+* Docker Compose configuration
 
 ---
 
-# Maintainer
+# Integration Testing
 
-### DevOps & Infrastructure
+Location:
 
-Amrita Neogi
+```text
+integration-tests/test_system_integration.py
+```
 
-Responsible for:
+Current status:
 
-* Deployment
-* Docker
-* Environment Management
-* Secrets Management
-* Integration Support
+```text
+Placeholder implementation
+```
+
+Planned coverage:
+
+* Backend health validation
+* PostgreSQL connectivity
+* Redis connectivity
+* AI/ML availability
+* Frontend ↔ Backend integration
+* Backend ↔ AI/ML integration
+
+---
+
+# OpenAPI Documentation
+
+Location:
+
+```text
+openapi_spec.yaml
+```
+
+Current status:
+
+```text
+Placeholder specification
+```
+
+To be updated as API contracts are finalized.

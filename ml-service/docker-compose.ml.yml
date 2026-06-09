@@ -1,0 +1,74 @@
+version: "3.9"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SuRaksha-Setu — ML Services
+#
+# Two FastAPI services:
+#   behavioral  →  port 8080   POST /score, POST /train, GET /user/{id}/status
+#   forensic    →  port 8000   POST /api/v1/forensics/analyze, GET /healthz
+#
+# Run the full stack (from infra/):
+#   docker compose -f docker-compose.yml -f ../ml-service/docker-compose.ml.yml up
+#
+# Run only the ML layer (for isolated development):
+#   docker compose -f docker-compose.ml.yml up --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Behavioural Analytics Engine ───────────────────────────────────────────
+  behavioral:
+    container_name: suraksha-behavioral
+    build:
+      context: .                          # ml-service/ directory
+      dockerfile: Dockerfile.behavioral
+    restart: unless-stopped
+    ports:
+      - "${BEHAVIORAL_PORT:-8080}:8080"
+    environment:
+      # Override any defaults baked into the source if needed
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    volumes:
+      # Persist the trained model across container restarts.
+      # Remove this volume mount if you want a fresh retrain on every start.
+      - behavioral_models:/app/models
+    networks:
+      - ml-network
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Document Forensics Engine ───────────────────────────────────────────────
+  forensic:
+    container_name: suraksha-forensic
+    build:
+      context: .
+      dockerfile: Dockerfile.forensic
+    restart: unless-stopped
+    ports:
+      - "${FORENSIC_PORT:-8000}:8000"
+    environment:
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    networks:
+      - ml-network
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  behavioral_models:
+    # Named volume so the pre-trained model survives docker compose down.
+    # Use `docker volume rm suraksha-behavioral_models` to force a full retrain.
+
+networks:
+  ml-network:
+    name: suraksha-ml-network
+    driver: bridge

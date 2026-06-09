@@ -1,0 +1,28 @@
+# SuRaksha-Setu — ML Service dependencies
+#
+# Changes from original:
+#   - opencv-python  →  opencv-python-headless
+#     Full opencv pulls GTK/Qt display libs; headless is identical for
+#     image processing and works in containers with no display server.
+#
+#   - easyocr removed: imported nowhere in behavioral_analytics_engine.py,
+#     forensic_engine.py, or utils.py. It adds ~1.5 GB of model downloads
+#     at image build time for no benefit. Re-add if OCR is introduced later.
+
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi>=0.115.0
+uvicorn[standard]>=0.35.0
+python-multipart>=0.0.9
+
+# ── Data / ML ─────────────────────────────────────────────────────────────────
+numpy>=2.0.0
+pandas>=2.2.0
+scikit-learn>=1.5.0
+joblib>=1.4.0
+
+# ── Schema validation ─────────────────────────────────────────────────────────
+pydantic>=2.10.0
+
+# ── Computer vision (headless — no display server needed) ─────────────────────
+opencv-python-headless>=4.10.0
+Pillow>=11.0.0

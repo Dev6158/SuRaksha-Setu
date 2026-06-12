@@ -59,11 +59,14 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login").permitAll()
+                                .requestMatchers("/api/v1/auth/register", "/api/v1/auth/login", "/api/v1/auth/otp/verify").permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/analytics/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/forensics/**").authenticated()
+                                .requestMatchers("/api/v1/documents/**").authenticated()
+                                .requestMatchers("/api/v1/account/**").authenticated()
+                                .requestMatchers("/api/v1/transactions").authenticated()
                                 .requestMatchers("/ws/telemetry/**").authenticated()
                                 .anyRequest().authenticated())
                 .addFilterBefore(this.customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

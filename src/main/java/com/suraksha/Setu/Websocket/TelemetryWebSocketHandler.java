@@ -29,7 +29,7 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
             RedisTemplate<String, String> redisTemplate,
             WebClient.Builder webClientBuilder,
             @Value("${ml.fastapi.base-url:http://localhost:8000}") String fastApiBaseUrl,
-            @Value("${ml.fastapi.risk-path:/risk/evaluate}") String riskEvaluationPath) {
+            @Value("${ml.fastapi.risk-path:/score}") String riskEvaluationPath) {
         this.activeSessions = new ConcurrentHashMap<>();
         this.sessionUsers = new ConcurrentHashMap<>();
         this.redisTemplate = redisTemplate;

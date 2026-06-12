@@ -10,8 +10,10 @@ import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.HexFormat;
 import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/forensics/documents")
+@RequestMapping({"/api/v1/forensics/documents", "/api/v1/documents"})
 public class DocumentController {
 
     private final DocumentRepository documentRepository;
@@ -32,7 +34,19 @@ public class DocumentController {
         this.userRepository = userRepository;
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/types", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<List<Map<String, Object>>> getDocumentTypes() {
+        return ResponseEntity.ok(List.of(
+                Map.of("code", "AADHAAR", "label", "Aadhaar Card", "allowedMimeTypes", List.of("application/pdf", "image/jpeg", "image/png")),
+                Map.of("code", "PAN", "label", "PAN Card", "allowedMimeTypes", List.of("application/pdf", "image/jpeg", "image/png")),
+                Map.of("code", "BANK_STATEMENT", "label", "Bank Statement", "allowedMimeTypes", List.of("application/pdf")),
+                Map.of("code", "OTHER", "label", "Other Document", "allowedMimeTypes", List.of("application/pdf", "image/jpeg", "image/png"))));
+    }
+
+    @PostMapping(
+            value = {"", "/upload"},
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<DocumentForensicLog> uploadDocument(
             @ModelAttribute DocumentUploadDto documentUploadDto,
             Authentication authentication) throws IOException, NoSuchAlgorithmException {

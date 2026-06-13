@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 // ---------------------------------------------------------------------------
 // API configuration
@@ -13,8 +14,7 @@ const String kBaseUrl = String.fromEnvironment(
   defaultValue: 'http://10.0.2.2:8080',
 );
 
-const Duration _kConnectTimeout = Duration(seconds: 10);
-const Duration _kReceiveTimeout = Duration(seconds: 20);
+const Duration _kTimeout = Duration(seconds: 20);
 
 // ---------------------------------------------------------------------------
 // ApiResponse
@@ -56,12 +56,14 @@ class AuthTokenStore {
   /// Call after successful login or register.
   static Future<void> save({
     required String access,
-    required String refresh,
+    String? refresh,
   }) async {
     _accessToken = access;
     _refreshToken = refresh;
     await _storage.write(key: 'access_token', value: access);
-    await _storage.write(key: 'refresh_token', value: refresh);
+    if (refresh != null) {
+      await _storage.write(key: 'refresh_token', value: refresh);
+    }
   }
 
   /// Call on logout.
@@ -73,7 +75,7 @@ class AuthTokenStore {
 }
 
 // ---------------------------------------------------------------------------
-// ApiService — thin HTTP client
+// ApiService — thin HTTP client built on package:http (web-compatible)
 // ---------------------------------------------------------------------------
 
 class ApiService {
@@ -82,18 +84,10 @@ class ApiService {
   ApiService._internal();
 
   Map<String, String> get _authHeaders => {
-        HttpHeaders.contentTypeHeader: 'application/json',
+        'Content-Type': 'application/json',
         if (AuthTokenStore.hasToken)
-          HttpHeaders.authorizationHeader:
-              'Bearer ${AuthTokenStore.accessToken}',
+          'Authorization': 'Bearer ${AuthTokenStore.accessToken}',
       };
-
-  Future<HttpClient> _client() async {
-    final client = HttpClient()
-      ..connectionTimeout = _kConnectTimeout
-      ..idleTimeout = _kReceiveTimeout;
-    return client;
-  }
 
   Future<ApiResponse<Map<String, dynamic>>> _request({
     required String method,
@@ -103,44 +97,46 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('$kBaseUrl$path');
-      final client = await _client();
-      late HttpClientRequest request;
+      final headers = {..._authHeaders, ...?extraHeaders};
+      final encodedBody = body != null ? jsonEncode(body) : null;
 
+      http.Response response;
       switch (method.toUpperCase()) {
         case 'POST':
-          request = await client.postUrl(uri);
+          response = await http
+              .post(uri, headers: headers, body: encodedBody)
+              .timeout(_kTimeout);
           break;
         case 'PUT':
-          request = await client.putUrl(uri);
+          response = await http
+              .put(uri, headers: headers, body: encodedBody)
+              .timeout(_kTimeout);
           break;
         case 'PATCH':
-          request = await client.patchUrl(uri);
+          response = await http
+              .patch(uri, headers: headers, body: encodedBody)
+              .timeout(_kTimeout);
           break;
         case 'DELETE':
-          request = await client.deleteUrl(uri);
+          response = await http
+              .delete(uri, headers: headers, body: encodedBody)
+              .timeout(_kTimeout);
           break;
         default:
-          request = await client.getUrl(uri);
+          response =
+              await http.get(uri, headers: headers).timeout(_kTimeout);
       }
-
-      _authHeaders.forEach(request.headers.set);
-      extraHeaders?.forEach(request.headers.set);
-
-      if (body != null) {
-        request.write(jsonEncode(body));
-      }
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-      client.close();
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+        if (response.body.isEmpty) {
+          return const ApiResponse.success(<String, dynamic>{});
+        }
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         return ApiResponse.success(decoded);
       } else {
         Map<String, dynamic>? decoded;
         try {
-          decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+          decoded = jsonDecode(response.body) as Map<String, dynamic>;
         } catch (_) {}
         final message = decoded?['message'] as String? ??
             decoded?['error'] as String? ??
@@ -150,7 +146,7 @@ class ApiService {
     } on SocketException {
       return const ApiResponse.failure(
           'No internet connection. Please check your network.');
-    } on HttpException catch (e) {
+    } on http.ClientException catch (e) {
       return ApiResponse.failure('Network error: ${e.message}');
     } on FormatException {
       return const ApiResponse.failure(
@@ -185,6 +181,8 @@ class ApiService {
   Future<ApiResponse<Map<String, dynamic>>> delete(String path) =>
       _request(method: 'DELETE', path: path);
 
+  // ---- multipart (for file uploads) ----------------------------------------
+
   Future<ApiResponse<Map<String, dynamic>>> uploadFile({
     required String path,
     required String filePath,
@@ -193,50 +191,25 @@ class ApiService {
   }) async {
     try {
       final uri = Uri.parse('$kBaseUrl$path');
-      final client = await _client();
-      final request = await client.postUrl(uri);
+      final request = http.MultipartRequest('POST', uri);
 
       if (AuthTokenStore.hasToken) {
-        request.headers.set(
-          HttpHeaders.authorizationHeader,
-          'Bearer ${AuthTokenStore.accessToken}',
-        );
+        request.headers['Authorization'] =
+            'Bearer ${AuthTokenStore.accessToken}';
       }
 
-      final boundary = 'boundary${DateTime.now().millisecondsSinceEpoch}';
-      request.headers.set(
-        HttpHeaders.contentTypeHeader,
-        'multipart/form-data; boundary=$boundary',
-      );
-
-      final file = File(filePath);
-      final fileBytes = await file.readAsBytes();
-      final fileName = file.path.split('/').last;
-
-      final buffer = StringBuffer();
-
       fields?.forEach((key, value) {
-        buffer.write('--$boundary\r\n');
-        buffer.write('Content-Disposition: form-data; name="$key"\r\n\r\n');
-        buffer.write('$value\r\n');
+        request.fields[key] = value;
       });
 
-      buffer.write('--$boundary\r\n');
-      buffer.write(
-        'Content-Disposition: form-data; name="$fieldName"; filename="$fileName"\r\n',
-      );
-      buffer.write('Content-Type: application/octet-stream\r\n\r\n');
+      request.files
+          .add(await http.MultipartFile.fromPath(fieldName, filePath));
 
-      request.write(buffer.toString());
-      request.add(fileBytes);
-      request.write('\r\n--$boundary--\r\n');
-
-      final response = await request.close();
-      final responseBody = await response.transform(utf8.decoder).join();
-      client.close();
+      final streamedResponse = await request.send().timeout(_kTimeout);
+      final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final decoded = jsonDecode(responseBody) as Map<String, dynamic>;
+        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
         return ApiResponse.success(decoded);
       } else {
         return ApiResponse.failure(

@@ -1,7 +1,10 @@
 import 'api_service.dart';
 
 // ---------------------------------------------------------------------------
-// Auth models
+// Auth models — these define the SHAPE the rest of the app uses.
+// The backend's actual field names may differ; AuthService maps between
+// them so the rest of the app never has to know about the backend's
+// raw response shape.
 // ---------------------------------------------------------------------------
 
 class LoginRequest {
@@ -15,8 +18,12 @@ class LoginRequest {
     this.rememberMe = false,
   });
 
+  /// The backend currently expects `username` + `password`.
+  /// We send both `email` and `username` (mirroring email) so it
+  /// works regardless of which field the backend reads.
   Map<String, dynamic> toJson() => {
         'email': email,
+        'username': email,
         'password': password,
         'remember_me': rememberMe,
       };
@@ -37,10 +44,15 @@ class RegisterRequest {
     required this.password,
   });
 
+  /// Send both snake_case and camelCase + a `username` alias so this
+  /// works against the current backend without requiring backend changes.
   Map<String, dynamic> toJson() => {
         'first_name': firstName,
         'last_name': lastName,
+        'firstName': firstName,
+        'lastName': lastName,
         'email': email,
+        'username': email,
         'phone': phone,
         'password': password,
       };
@@ -50,27 +62,122 @@ class AuthResult {
   final String userId;
   final String sessionId;
   final String accessToken;
-  final String refreshToken;
+  final String? refreshToken;
   final String displayName;
   final String maskedAccountNumber;
+  final String avatarInitials;
 
   const AuthResult({
     required this.userId,
     required this.sessionId,
     required this.accessToken,
-    required this.refreshToken,
+    this.refreshToken,
     required this.displayName,
     required this.maskedAccountNumber,
+    required this.avatarInitials,
   });
 
-  factory AuthResult.fromJson(Map<String, dynamic> json) => AuthResult(
-        userId: json['user_id'] as String,
-        sessionId: json['session_id'] as String,
-        accessToken: json['access_token'] as String,
-        refreshToken: json['refresh_token'] as String,
-        displayName: json['display_name'] as String,
-        maskedAccountNumber: json['masked_account_number'] as String,
-      );
+  /// Maps the backend's actual response shape into the shape the rest
+  /// of the app expects.
+  ///
+  /// Backend currently returns something like:
+  /// ```json
+  /// {
+  ///   "token": "...",
+  ///   "accessToken": "...",
+  ///   "user": {
+  ///     "id": "...",
+  ///     "username": "...",
+  ///     "email": "...",
+  ///     "firstName": "...",
+  ///     "lastName": "..."
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// This factory reads from BOTH the new contract field names
+  /// (snake_case, top-level) AND the backend's current field names
+  /// (camelCase, nested under "user"), so it works either way without
+  /// requiring backend changes first.
+  factory AuthResult.fromJson(Map<String, dynamic> json) {
+    // Nested user object, if present (current backend shape)
+    final Map<String, dynamic> user =
+        (json['user'] as Map<String, dynamic>?) ?? const {};
+
+    // ---- access token --------------------------------------------------
+    final String accessToken = (json['access_token'] ??
+            json['accessToken'] ??
+            json['token'] ??
+            '') as String;
+
+    // ---- refresh token (optional) --------------------------------------
+    final String? refreshToken =
+        (json['refresh_token'] ?? json['refreshToken']) as String?;
+
+    // ---- user id ----------------------------------------------------------
+    final String userId = (json['user_id'] ??
+            json['userId'] ??
+            user['id'] ??
+            user['user_id'] ??
+            user['userId'] ??
+            '') as String;
+
+    // ---- session id --------------------------------------------------------
+    // Falls back to userId if backend doesn't issue a separate session id.
+    final String sessionId = (json['session_id'] ??
+            json['sessionId'] ??
+            user['session_id'] ??
+            userId) as String;
+
+    // ---- display name --------------------------------------------------------
+    String displayName = (json['display_name'] ?? json['displayName']) as String? ??
+        '';
+    if (displayName.isEmpty) {
+      final String firstName =
+          (user['first_name'] ?? user['firstName'] ?? '') as String;
+      final String lastName =
+          (user['last_name'] ?? user['lastName'] ?? '') as String;
+      final String combined = [firstName, lastName]
+          .where((s) => s.isNotEmpty)
+          .join(' ')
+          .trim();
+      displayName = combined.isNotEmpty
+          ? combined
+          : (user['username'] ?? user['email'] ?? 'User') as String;
+    }
+
+    // ---- masked account number --------------------------------------------------------
+    final String maskedAccountNumber = (json['masked_account_number'] ??
+            json['maskedAccountNumber'] ??
+            user['masked_account_number'] ??
+            user['maskedAccountNumber'] ??
+            '---- ---- ---- ----') as String;
+
+    // ---- avatar initials --------------------------------------------------------
+    String avatarInitials = (json['avatar_initials'] ??
+            json['avatarInitials']) as String? ??
+        '';
+    if (avatarInitials.isEmpty) {
+      avatarInitials = _deriveInitials(displayName);
+    }
+
+    return AuthResult(
+      userId: userId,
+      sessionId: sessionId,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+      displayName: displayName,
+      maskedAccountNumber: maskedAccountNumber,
+      avatarInitials: avatarInitials,
+    );
+  }
+
+  static String _deriveInitials(String name) {
+    final parts = name.trim().split(' ').where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return '${parts.first[0]}${parts.last[0]}'.toUpperCase();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -98,7 +205,11 @@ class AuthService {
 
     try {
       final result = AuthResult.fromJson(response.data!);
-      AuthTokenStore.save(
+      if (result.accessToken.isEmpty) {
+        return const ApiResponse.failure(
+            'Login succeeded but no access token was returned.');
+      }
+      await AuthTokenStore.save(
         access: result.accessToken,
         refresh: result.refreshToken,
       );
@@ -122,7 +233,11 @@ class AuthService {
 
     try {
       final result = AuthResult.fromJson(response.data!);
-      AuthTokenStore.save(
+      if (result.accessToken.isEmpty) {
+        return const ApiResponse.failure(
+            'Registration succeeded but no access token was returned.');
+      }
+      await AuthTokenStore.save(
         access: result.accessToken,
         refresh: result.refreshToken,
       );
@@ -140,7 +255,7 @@ class AuthService {
     } catch (_) {
       // Best-effort; always clear tokens locally
     } finally {
-      AuthTokenStore.clear();
+      await AuthTokenStore.clear();
     }
   }
 
@@ -157,12 +272,15 @@ class AuthService {
 
     if (!response.isSuccess) return false;
 
-    final newAccess = response.data?['access_token'] as String?;
-    final newRefresh = response.data?['refresh_token'] as String?;
+    final newAccess = (response.data?['access_token'] ??
+        response.data?['accessToken'] ??
+        response.data?['token']) as String?;
+    final newRefresh = (response.data?['refresh_token'] ??
+        response.data?['refreshToken']) as String?;
 
-    if (newAccess == null || newRefresh == null) return false;
+    if (newAccess == null) return false;
 
-    AuthTokenStore.save(access: newAccess, refresh: newRefresh);
+    await AuthTokenStore.save(access: newAccess, refresh: newRefresh);
     return true;
   }
 }

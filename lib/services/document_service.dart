@@ -69,8 +69,6 @@ class DocumentService {
   final _api = ApiService();
 
   /// Fetch supported document types from the backend.
-  /// Falls back to a standard set so the UI never shows empty on first load
-  /// while the backend call is in flight.
   Future<ApiResponse<List<DocumentType>>> getDocumentTypes() async {
     final response = await _api.get('/api/v1/documents/types');
     if (!response.isSuccess) {
@@ -87,13 +85,19 @@ class DocumentService {
   }
 
   /// Upload a single file for a given document type.
+  ///
+  /// Uses raw bytes + filename instead of a file path — this works on
+  /// Flutter Web, mobile, and desktop. Pair with file_picker's
+  /// `withData: true` to get `PlatformFile.bytes`.
   Future<ApiResponse<UploadedDocument>> uploadDocument({
     required String documentTypeId,
-    required String filePath,
+    required List<int> fileBytes,
+    required String fileName,
   }) async {
     final response = await _api.uploadFile(
       path: '/api/v1/documents/upload',
-      filePath: filePath,
+      fileBytes: fileBytes,
+      fileName: fileName,
       fieldName: 'file',
       fields: {'document_type_id': documentTypeId},
     );
@@ -102,10 +106,11 @@ class DocumentService {
       return ApiResponse.failure(response.error);
     }
     try {
-      return ApiResponse.success(
-          UploadedDocument.fromJson(response.data!['document'] as Map<String, dynamic>));
+      return ApiResponse.success(UploadedDocument.fromJson(
+          response.data!['document'] as Map<String, dynamic>));
     } catch (_) {
-      return const ApiResponse.failure('Upload succeeded but response was unexpected.');
+      return const ApiResponse.failure(
+          'Upload succeeded but response was unexpected.');
     }
   }
 

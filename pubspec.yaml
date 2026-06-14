@@ -11,6 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  file_picker: ^10.1.9
+
   cupertino_icons: ^1.0.8
   hive_flutter: ^1.1.0
   sensors_plus: ^3.1.0

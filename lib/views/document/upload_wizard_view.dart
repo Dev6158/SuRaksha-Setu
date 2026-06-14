@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../widgets/file_preview_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../services/document_service.dart';
+import 'package:file_picker/file_picker.dart';
 
 class UploadWizardView extends StatefulWidget {
   const UploadWizardView({super.key});
@@ -48,31 +49,25 @@ class _UploadWizardViewState extends State<UploadWizardView> {
   }
 
   Future<void> _pickFile() async {
-    // Wire file_picker here once added to pubspec.yaml:
-    //   final result = await FilePicker.platform.pickFiles(
-    //     type: FileType.custom,
-    //     allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-    //   );
-    //   if (result != null) {
-    //     final file = result.files.single;
-    //     setState(() {
-    //       _selectedFiles.add({
-    //         'name': file.name,
-    //         'size': '${(file.size / 1024 / 1024).toStringAsFixed(1)} MB',
-    //         'path': file.path ?? '',
-    //       });
-    //     });
-    //   }
-    //
-    // Placeholder until file_picker is wired:
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+  );
+
+  if (result != null) {
+    final file = result.files.single;
+
     setState(() {
-      _selectedFiles.add({
-        'name': '${_selectedDocTypeId}_document.pdf',
-        'size': '1.4 MB',
-        'path': '/placeholder/path',
-      });
+      _selectedFiles = [
+        {
+          'name': file.name,
+          'size': '${(file.size / 1024 / 1024).toStringAsFixed(1)} MB',
+          'path': file.path ?? '',
+        }
+      ];
     });
   }
+}
 
   Future<void> _handleUpload() async {
     if (_selectedFiles.isEmpty || _selectedDocTypeId == null) return;

@@ -11,7 +11,7 @@ import 'package:http/http.dart' as http;
 
 const String kBaseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:8080',
+  defaultValue: 'http://localhost:8080',
 );
 
 const Duration _kTimeout = Duration(seconds: 20);
@@ -127,12 +127,26 @@ class ApiService {
               await http.get(uri, headers: headers).timeout(_kTimeout);
       }
 
-      if (response.statusCode >= 200 && response.statusCode < 300) {
+       if (response.statusCode >= 200 && response.statusCode < 300) {
         if (response.body.isEmpty) {
           return const ApiResponse.success(<String, dynamic>{});
         }
-        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        return ApiResponse.success(decoded);
+
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is Map<String, dynamic>) {
+          return ApiResponse.success(decoded);
+        }
+
+        if (decoded is List) {
+          return ApiResponse.success({
+            'value': decoded,
+          });
+        }
+
+        return const ApiResponse.failure(
+          'Unexpected server response.',
+        );
       } else {
         Map<String, dynamic>? decoded;
         try {
@@ -209,8 +223,21 @@ class ApiService {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-        return ApiResponse.success(decoded);
+        final decoded = jsonDecode(response.body);
+
+        if (decoded is Map<String, dynamic>) {
+          return ApiResponse.success(decoded);
+        }
+
+        if (decoded is List) {
+          return ApiResponse.success({
+            'value': decoded,
+          });
+        }
+
+        return const ApiResponse.failure(
+        'Unexpected server response.',
+        );
       } else {
         return ApiResponse.failure(
           'Upload failed (${response.statusCode})',

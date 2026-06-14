@@ -27,17 +27,42 @@ class AccountSummary {
     required this.avatarInitials,
   });
 
-  factory AccountSummary.fromJson(Map<String, dynamic> json) => AccountSummary(
-        accountId: json['account_id'] as String,
-        displayName: json['display_name'] as String,
-        maskedAccountNumber: json['masked_account_number'] as String,
-        availableBalance: (json['available_balance'] as num).toDouble(),
-        ledgerBalance: (json['ledger_balance'] as num).toDouble(),
-        accountType: json['account_type'] as String,
-        ifscCode: json['ifsc_code'] as String,
-        unreadNotifications: json['unread_notifications'] as int? ?? 0,
-        avatarInitials: json['avatar_initials'] as String,
-      );
+  factory AccountSummary.fromJson(Map<String, dynamic> json) {
+  final username =
+      (json['username'] ?? json['email'] ?? 'User') as String;
+
+  return AccountSummary(
+    accountId:
+        (json['account_id'] ?? json['userId'] ?? '') as String,
+
+    displayName:
+        (json['display_name'] ?? username) as String,
+
+    maskedAccountNumber:
+        (json['masked_account_number'] ?? '---- ---- ---- ----')
+            as String,
+
+    availableBalance:
+        (json['available_balance'] as num?)?.toDouble() ?? 0.0,
+
+    ledgerBalance:
+        (json['ledger_balance'] as num?)?.toDouble() ?? 0.0,
+
+    accountType:
+        (json['account_type'] ?? 'Savings') as String,
+
+    ifscCode:
+        (json['ifsc_code'] ?? 'SURA0000001') as String,
+
+    unreadNotifications:
+        json['unread_notifications'] as int? ?? 0,
+
+    avatarInitials:
+        (json['avatar_initials'] ??
+                username.substring(0, 1).toUpperCase())
+            as String,
+  );
+}
 }
 
 enum TransactionType { credit, debit }
@@ -151,9 +176,13 @@ class DashboardService {
       return ApiResponse.failure(response.error);
     }
     try {
-      final list = (response.data!['transactions'] as List)
-          .map((e) => Transaction.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final raw = response.data!['transactions'] ??
+        response.data!['data'] ??
+        [];
+
+      final list = (raw as List)
+        .map((e) => Transaction.fromJson(e as Map<String, dynamic>))
+        .toList();
       return ApiResponse.success(list);
     } catch (_) {
       return const ApiResponse.failure('Failed to parse transactions.');

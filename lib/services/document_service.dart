@@ -22,14 +22,17 @@ class DocumentType {
   });
 
   factory DocumentType.fromJson(Map<String, dynamic> json) => DocumentType(
-        id: json['id'] as String,
-        label: json['label'] as String,
-        subtitle: json['subtitle'] as String,
-        isRequired: json['is_required'] as bool? ?? false,
-        acceptedFormats: List<String>.from(
-            json['accepted_formats'] as List? ?? ['pdf', 'jpg', 'png']),
-        maxSizeMb: json['max_size_mb'] as int? ?? 10,
-      );
+      id: (json['id'] ?? json['code']).toString().toLowerCase(),
+      label: json['label'] as String,
+      subtitle: json['subtitle'] as String? ?? '',
+      isRequired: json['is_required'] as bool? ?? false,
+      acceptedFormats: List<String>.from(
+        json['accepted_formats'] ??
+        json['allowedMimeTypes'] ??
+        ['pdf', 'jpg', 'png'],
+      ),
+      maxSizeMb: json['max_size_mb'] as int? ?? 10,
+    );
 }
 
 class UploadedDocument {
@@ -77,9 +80,9 @@ class DocumentService {
       return ApiResponse.failure(response.error);
     }
     try {
-      final list = (response.data!['types'] as List)
-          .map((e) => DocumentType.fromJson(e as Map<String, dynamic>))
-          .toList();
+      final list = (response.data!['value'] as List)
+      .map((e) => DocumentType.fromJson(e as Map<String, dynamic>))
+      .toList();
       return ApiResponse.success(list);
     } catch (_) {
       return const ApiResponse.failure('Failed to parse document types.');

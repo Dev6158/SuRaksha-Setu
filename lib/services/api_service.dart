@@ -174,6 +174,35 @@ class ApiService {
   Future<ApiResponse<Map<String, dynamic>>> get(String path) =>
       _request(method: 'GET', path: path);
 
+  /// Use this instead of `get()` when the backend might return a raw
+  /// JSON array (`[...]`) instead of an object (`{...}`).
+  /// Returns the decoded body as `dynamic` — could be a List or a Map.
+  Future<ApiResponse<dynamic>> getRaw(String path) async {
+    try {
+      final uri = Uri.parse('$kBaseUrl$path');
+      final response = await http
+          .get(uri, headers: _authHeaders)
+          .timeout(_kTimeout);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        if (response.body.isEmpty) {
+          return const ApiResponse.success(<dynamic>[]);
+        }
+        final decoded = jsonDecode(response.body);
+        return ApiResponse.success(decoded);
+      } else {
+        return ApiResponse.failure(
+          'Request failed (${response.statusCode})',
+          statusCode: response.statusCode,
+        );
+      }
+    } on SocketException {
+      return const ApiResponse.failure('No internet connection.');
+    } catch (e) {
+      return ApiResponse.failure('Something went wrong: $e');
+    }
+  }
+
   Future<ApiResponse<Map<String, dynamic>>> post(
     String path, {
     Map<String, dynamic>? body,
@@ -199,7 +228,8 @@ class ApiService {
 
   Future<ApiResponse<Map<String, dynamic>>> uploadFile({
     required String path,
-    required String filePath,
+    required List<int> fileBytes,
+    required String fileName,
     required String fieldName,
     Map<String, String>? fields,
   }) async {
@@ -216,8 +246,13 @@ class ApiService {
         request.fields[key] = value;
       });
 
-      request.files
-          .add(await http.MultipartFile.fromPath(fieldName, filePath));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          fieldName,
+          fileBytes,
+          filename: fileName,
+        ),
+      );
 
       final streamedResponse = await request.send().timeout(_kTimeout);
       final response = await http.Response.fromStream(streamedResponse);

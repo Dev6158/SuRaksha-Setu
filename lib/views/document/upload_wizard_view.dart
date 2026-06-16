@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../../widgets/file_preview_card.dart';
 import '../../widgets/primary_button.dart';
@@ -14,7 +15,10 @@ class UploadWizardView extends StatefulWidget {
 class _UploadWizardViewState extends State<UploadWizardView> {
   int _currentStep = 0;
   String? _selectedDocTypeId;
-  List<Map<String, String>> _selectedFiles = [];
+
+  // Each entry: { 'name': ..., 'size': ..., 'bytes': List<int> }
+  final List<Map<String, dynamic>> _selectedFiles = [];
+
   bool _isUploading = false;
   bool _uploadComplete = false;
   bool _isLoadingTypes = true;
@@ -48,7 +52,11 @@ class _UploadWizardViewState extends State<UploadWizardView> {
     });
   }
 
+  /// Opens the native file picker and reads the file as bytes.
+  /// `withData: true` is required for Flutter Web — it loads the file
+  /// contents into memory immediately since web has no filesystem path.
   Future<void> _pickFile() async {
+<<<<<<< HEAD
   final result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
     allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
@@ -65,6 +73,38 @@ class _UploadWizardViewState extends State<UploadWizardView> {
           'path': file.path ?? '',
         }
       ];
+=======
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions:
+          _selectedDocType?.acceptedFormats ?? ['pdf', 'jpg', 'jpeg', 'png'],
+      withData: true,
+    );
+
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.single;
+    if (file.bytes == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Could not read the selected file. Please try again.'),
+          backgroundColor: Color(0xFFDC2626),
+        ),
+      );
+      return;
+    }
+
+    final double sizeMb = file.size / (1024 * 1024);
+
+    setState(() {
+      _selectedFiles.add({
+        'name': file.name,
+        'size': '${sizeMb.toStringAsFixed(1)} MB',
+        'bytes': file.bytes!,
+      });
+>>>>>>> origin/Frontend_Procheta
     });
   }
 }
@@ -73,9 +113,11 @@ class _UploadWizardViewState extends State<UploadWizardView> {
     if (_selectedFiles.isEmpty || _selectedDocTypeId == null) return;
     setState(() => _isUploading = true);
 
+    final file = _selectedFiles.first;
     final result = await _documentService.uploadDocument(
       documentTypeId: _selectedDocTypeId!,
-      filePath: _selectedFiles.first['path']!,
+      fileBytes: file['bytes'] as List<int>,
+      fileName: file['name'] as String,
     );
 
     if (!mounted) return;
@@ -152,7 +194,7 @@ class _UploadWizardViewState extends State<UploadWizardView> {
             if (_currentStep > 0 && !_uploadComplete) {
               setState(() {
                 _currentStep--;
-                if (_currentStep == 0) _selectedFiles = [];
+                if (_currentStep == 0) _selectedFiles.clear();
               });
             } else {
               Navigator.pop(context);
@@ -390,8 +432,8 @@ class _UploadWizardViewState extends State<UploadWizardView> {
                       (f) => Padding(
                         padding: const EdgeInsets.only(bottom: 10),
                         child: FilePreviewCard(
-                          fileName: f['name']!,
-                          fileSize: f['size']!,
+                          fileName: f['name'] as String,
+                          fileSize: f['size'] as String,
                           documentType: _selectedDocLabel,
                           onRemove: () =>
                               setState(() => _selectedFiles.remove(f)),
@@ -555,7 +597,7 @@ class _UploadWizardViewState extends State<UploadWizardView> {
               onPressed: () => setState(() {
                 _currentStep = 0;
                 _selectedDocTypeId = null;
-                _selectedFiles = [];
+                _selectedFiles.clear();
                 _uploadComplete = false;
               }),
               icon: Icons.upload_file_outlined,

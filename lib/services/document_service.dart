@@ -110,7 +110,8 @@ class DocumentService {
     }
     try {
       return ApiResponse.success(
-        UploadedDocument.fromJson(response.data!),
+        UploadedDocument.fromJson(
+        response.data! as Map<String, dynamic>),
       );
     } catch (_) {
       return const ApiResponse.failure(

@@ -36,28 +36,26 @@ class DocumentType {
 }
 
 class UploadedDocument {
-  final String documentId;
-  final String documentTypeId;
-  final String fileName;
-  final String status; // pending_review | approved | rejected
-  final DateTime uploadedAt;
+  final String id;
+  final String documentName;
+  final String riskDecision;
+  final DateTime createdAt;
 
   const UploadedDocument({
-    required this.documentId,
-    required this.documentTypeId,
-    required this.fileName,
-    required this.status,
-    required this.uploadedAt,
+    required this.id,
+    required this.documentName,
+    required this.riskDecision,
+    required this.createdAt,
   });
 
-  factory UploadedDocument.fromJson(Map<String, dynamic> json) =>
-      UploadedDocument(
-        documentId: json['document_id'] as String,
-        documentTypeId: json['document_type_id'] as String,
-        fileName: json['file_name'] as String,
-        status: json['status'] as String,
-        uploadedAt: DateTime.parse(json['uploaded_at'] as String),
-      );
+  factory UploadedDocument.fromJson(Map<String, dynamic> json) {
+    return UploadedDocument(
+      id: json['id'] as String,
+      documentName: json['documentName'] as String,
+      riskDecision: json['riskDecision'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------

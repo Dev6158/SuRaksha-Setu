@@ -58,7 +58,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception exception) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "internal_error", "Unexpected server error");
+
+      exception.printStackTrace();
+
+      Map<String, Object> body = new LinkedHashMap<>();
+      body.put("error", exception.getClass().getName());
+      body.put("message", exception.getMessage());
+
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(body);
     }
 
     private ResponseEntity<Map<String, Object>> buildResponse(

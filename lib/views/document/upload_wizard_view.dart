@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../widgets/file_preview_card.dart';
 import '../../widgets/primary_button.dart';
 import '../../services/document_service.dart';
-import 'package:file_picker/file_picker.dart';
 
 class UploadWizardView extends StatefulWidget {
   const UploadWizardView({super.key});
@@ -56,7 +55,7 @@ class _UploadWizardViewState extends State<UploadWizardView> {
   /// `withData: true` is required for Flutter Web — it loads the file
   /// contents into memory immediately since web has no filesystem path.
   Future<void> _pickFile() async {
-    
+
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions:
@@ -89,7 +88,6 @@ class _UploadWizardViewState extends State<UploadWizardView> {
       });
     });
   }
-}
 
   Future<void> _handleUpload() async {
     if (_selectedFiles.isEmpty || _selectedDocTypeId == null) return;

@@ -22,7 +22,7 @@ class DocumentType {
   });
 
   factory DocumentType.fromJson(Map<String, dynamic> json) => DocumentType(
-      id: (json['id'] ?? json['code']).toString().toLowerCase(),
+      id: (json['id'] ?? json['code']).toString(),
       label: json['label'] as String,
       subtitle: json['subtitle'] as String? ?? '',
       isRequired: json['is_required'] as bool? ?? false,
@@ -102,15 +102,16 @@ class DocumentService {
       fileBytes: fileBytes,
       fileName: fileName,
       fieldName: 'file',
-      fields: {'document_type_id': documentTypeId},
+      fields: {'purpose': documentTypeId},
     );
 
     if (!response.isSuccess) {
       return ApiResponse.failure(response.error);
     }
     try {
-      return ApiResponse.success(UploadedDocument.fromJson(
-          response.data!['document'] as Map<String, dynamic>));
+      return ApiResponse.success(
+        UploadedDocument.fromJson(response.data!),
+      );
     } catch (_) {
       return const ApiResponse.failure(
           'Upload succeeded but response was unexpected.');

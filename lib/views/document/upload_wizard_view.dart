@@ -56,24 +56,7 @@ class _UploadWizardViewState extends State<UploadWizardView> {
   /// `withData: true` is required for Flutter Web — it loads the file
   /// contents into memory immediately since web has no filesystem path.
   Future<void> _pickFile() async {
-<<<<<<< HEAD
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
-  );
-
-  if (result != null) {
-    final file = result.files.single;
-
-    setState(() {
-      _selectedFiles = [
-        {
-          'name': file.name,
-          'size': '${(file.size / 1024 / 1024).toStringAsFixed(1)} MB',
-          'path': file.path ?? '',
-        }
-      ];
-=======
+    
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions:
@@ -104,7 +87,6 @@ class _UploadWizardViewState extends State<UploadWizardView> {
         'size': '${sizeMb.toStringAsFixed(1)} MB',
         'bytes': file.bytes!,
       });
->>>>>>> origin/Frontend_Procheta
     });
   }
 }

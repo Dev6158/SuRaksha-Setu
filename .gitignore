@@ -27,6 +27,7 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
+.dart_tool/
 build/
 
 !**/src/main/**/build/

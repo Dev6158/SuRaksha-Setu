@@ -49,14 +49,13 @@ class UploadedDocument {
   });
 
   factory UploadedDocument.fromJson(Map<String, dynamic> json) {
-    return UploadedDocument(
-      documentId: json['id'].toString(),
-      documentTypeId: '',
-      fileName: json['documentName'] ?? '',
-      status: json['riskDecision'] ?? 'UNKNOWN',
-      uploadedAt: DateTime.parse(json['createdAt']),
-    );
-  }
+  return UploadedDocument(
+    id: json['id'].toString(),
+    documentName: json['documentName'] ?? '',
+    status: json['riskDecision'] ?? 'UNKNOWN',
+    uploadedAt: DateTime.parse(json['createdAt']),
+  );
+ }
 }
 
 // ---------------------------------------------------------------------------
@@ -124,18 +123,5 @@ class DocumentService {
   }
 
   /// List all documents uploaded by the current user.
-  Future<ApiResponse<List<UploadedDocument>>> getMyDocuments() async {
-    final response = await _api.get('/api/v1/transactions');
-    if (!response.isSuccess) {
-      return ApiResponse.failure(response.error);
-    }
-    try {
-      final list = (response.data!['documents'] as List)
-          .map((e) => UploadedDocument.fromJson(e as Map<String, dynamic>))
-          .toList();
-      return ApiResponse.success(list);
-    } catch (_) {
-      return const ApiResponse.failure('Failed to parse documents.');
-    }
-  }
+ 
 }

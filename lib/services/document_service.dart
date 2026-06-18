@@ -68,7 +68,27 @@ class DocumentService {
   DocumentService._internal();
 
   final _api = ApiService();
+  Future<ApiResponse<List<DocumentType>>> getDocumentTypes() async {
+  final response = await _api.get('/api/v1/documents/types');
 
+  if (!response.isSuccess) {
+    return ApiResponse.failure(response.error);
+  }
+
+  try {
+    final list = (response.data!['value'] as List)
+        .map((e) => DocumentType.fromJson(
+            e as Map<String, dynamic>))
+        .toList();
+
+    return ApiResponse.success(list);
+  } catch (e) {
+    print(e);
+    return const ApiResponse.failure(
+      'Failed to parse document types.',
+    );
+  }
+}
   /// Fetch supported document types from the backend.
   Future<ApiResponse<List<UploadedDocument>>> getMyDocuments() async {
   final response = await _api.get('/api/v1/transactions');
@@ -78,7 +98,7 @@ class DocumentService {
   }
 
   try {
-    final list = (response.data!['value'] as List)
+    final list = (response.data! as List)
         .map((e) => UploadedDocument.fromJson(
             e as Map<String, dynamic>))
         .toList();
@@ -89,7 +109,6 @@ class DocumentService {
         'Failed to parse documents: $e');
   }
 }
-
   /// Upload a single file for a given document type.
   ///
   /// Uses raw bytes + filename instead of a file path — this works on

@@ -38,22 +38,23 @@ class DocumentType {
 class UploadedDocument {
   final String id;
   final String documentName;
-  final String riskDecision;
-  final DateTime createdAt;
+  final String status;
+  final DateTime uploadedAt;
 
   const UploadedDocument({
     required this.id,
     required this.documentName,
-    required this.riskDecision,
-    required this.createdAt,
+    required this.status,
+    required this.uploadedAt,
   });
 
   factory UploadedDocument.fromJson(Map<String, dynamic> json) {
     return UploadedDocument(
-      id: json['id'] as String,
-      documentName: json['documentName'] as String,
-      riskDecision: json['riskDecision'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
+      documentId: json['id'].toString(),
+      documentTypeId: '',
+      fileName: json['documentName'] ?? '',
+      status: json['riskDecision'] ?? 'UNKNOWN',
+      uploadedAt: DateTime.parse(json['createdAt']),
     );
   }
 }
@@ -70,20 +71,25 @@ class DocumentService {
   final _api = ApiService();
 
   /// Fetch supported document types from the backend.
-  Future<ApiResponse<List<DocumentType>>> getDocumentTypes() async {
-    final response = await _api.get('/api/v1/documents/types');
-    if (!response.isSuccess) {
-      return ApiResponse.failure(response.error);
-    }
-    try {
-      final list = (response.data!['value'] as List)
-      .map((e) => DocumentType.fromJson(e as Map<String, dynamic>))
-      .toList();
-      return ApiResponse.success(list);
-    } catch (_) {
-      return const ApiResponse.failure('Failed to parse document types.');
-    }
+  Future<ApiResponse<List<UploadedDocument>>> getMyDocuments() async {
+  final response = await _api.get('/api/v1/transactions');
+
+  if (!response.isSuccess) {
+    return ApiResponse.failure(response.error);
   }
+
+  try {
+    final list = (response.data!['value'] as List)
+        .map((e) => UploadedDocument.fromJson(
+            e as Map<String, dynamic>))
+        .toList();
+
+    return ApiResponse.success(list);
+  } catch (e) {
+    return ApiResponse.failure(
+        'Failed to parse documents: $e');
+  }
+}
 
   /// Upload a single file for a given document type.
   ///
@@ -119,7 +125,7 @@ class DocumentService {
 
   /// List all documents uploaded by the current user.
   Future<ApiResponse<List<UploadedDocument>>> getMyDocuments() async {
-    final response = await _api.get('/api/v1/documents');
+    final response = await _api.get('/api/v1/transactions');
     if (!response.isSuccess) {
       return ApiResponse.failure(response.error);
     }

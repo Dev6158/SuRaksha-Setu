@@ -51,11 +51,28 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
   }
 
   List<UploadedDocument> get _filteredDocuments {
-    if (_filterStatus == 'all') return _documents;
-    return _documents
-        .where((d) => d.status == _filterStatus)
-        .toList();
+  if (_filterStatus == 'all') {
+    return _documents;
   }
+
+  return _documents.where((d) {
+    final status = d.status.toLowerCase();
+
+    switch (_filterStatus) {
+      case 'pending':
+        return status.contains('pending');
+
+      case 'approved':
+        return status.contains('approved');
+
+      case 'rejected':
+        return status.contains('rejected');
+
+      default:
+        return true;
+    }
+  }).toList();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -139,9 +156,9 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
                               itemBuilder: (context, i) {
                                 final doc = _filteredDocuments[i];
                                 return DocumentCard(
-                                  documentId: doc.documentId,
-                                  documentTypeId: doc.documentTypeId,
-                                  fileName: doc.fileName,
+                                  documentId: doc.id,
+                                  documentTypeId: '',
+                                  fileName: doc.documentName,
                                   status: doc.status,
                                   uploadedAt: doc.uploadedAt,
                                 );

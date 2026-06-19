@@ -98,7 +98,7 @@ class DocumentService {
   }
 
   try {
-    final list = (response.data! as List)
+    final list = (response.data!['value'] as List)
         .map((e) => UploadedDocument.fromJson(
             e as Map<String, dynamic>))
         .toList();

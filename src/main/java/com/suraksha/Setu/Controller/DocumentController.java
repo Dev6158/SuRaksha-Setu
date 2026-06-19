@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.suraksha.Setu.Service.AiService;
+import com.suraksha.Setu.dto.AiResponseDto;
 
 @RestController
 @RequestMapping({"/api/v1/forensics/documents", "/api/v1/documents"})
@@ -28,11 +30,16 @@ public class DocumentController {
 
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
+    private final AiService aiService;
+    public DocumentController(
+        DocumentRepository documentRepository,
+        UserRepository userRepository,
+        AiService aiService) {
 
-    public DocumentController(DocumentRepository documentRepository, UserRepository userRepository) {
-        this.documentRepository = documentRepository;
-        this.userRepository = userRepository;
-    }
+      this.documentRepository = documentRepository;
+      this.userRepository = userRepository;
+      this.aiService = aiService;
+}
 
     @GetMapping(value = "/types", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Map<String, Object>>> getDocumentTypes() {
@@ -57,13 +64,21 @@ public class DocumentController {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         String sha256 = HexFormat.of().formatHex(messageDigest.digest(bytes));
 
-        BigDecimal defaultRiskScore = BigDecimal.ZERO;
-        String decision = "PENDING_REVIEW";
+        AiResponseDto aiResponse =
+                aiService.analyzeDocument(documentUploadDto.getFile());
+
+        BigDecimal defaultRiskScore =
+                aiResponse.getRiskScore();
+
+        String decision =
+                aiResponse.getDecision();
         Map<String, Object> metadata = Map.of(
                 "originalFilename", documentUploadDto.getFile().getOriginalFilename(),
                 "declaredPurpose", documentUploadDto.getPurpose(),
                 "byteSize", documentUploadDto.getFile().getSize(),
-                "uploadedAt", OffsetDateTime.now().toString());
+                "uploadedAt", OffsetDateTime.now().toString(),
+                "summary", aiResponse.getSummary()
+        );
 
         DocumentForensicLog documentForensicLog = new DocumentForensicLog();
         documentForensicLog.setUser(user);

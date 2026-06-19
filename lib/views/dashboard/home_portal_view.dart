@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../widgets/transaction_card.dart';
+import '../../widgets/stats_card.dart';
 import '../../services/dashboard_service.dart';
 import '../../services/api_service.dart';
 
@@ -21,13 +22,6 @@ class _HomePortalViewState extends State<HomePortalView> {
   MonthlyStats? _stats;
 
   final _dashboardService = DashboardService();
-
-  final List<Map<String, dynamic>> _quickActions = [
-    {'icon': Icons.send_outlined, 'label': 'Transfer', 'color': Color(0xFF2563EB)},
-    {'icon': Icons.qr_code_scanner_outlined, 'label': 'Pay', 'color': Color(0xFF7C3AED)},
-    {'icon': Icons.receipt_long_outlined, 'label': 'History', 'color': Color(0xFF0891B2)},
-    {'icon': Icons.upload_file_outlined, 'label': 'Documents', 'color': Color(0xFF059669)},
-  ];
 
   @override
   void initState() {
@@ -90,19 +84,13 @@ class _HomePortalViewState extends State<HomePortalView> {
         ),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
-          onTap: (i) {
-            if (i == 3) {
-              Navigator.pushNamed(context, '/upload');
-              return;
-            }
-            setState(() => _selectedIndex = i);
-          },
+          onTap: (i) => setState(() => _selectedIndex = i),
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.white,
           selectedItemColor: const Color(0xFF1A3A6B),
           unselectedItemColor: const Color(0xFF94A3B8),
-          selectedLabelStyle:
-              const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+          selectedLabelStyle: const TextStyle(
+              fontSize: 11, fontWeight: FontWeight.w600),
           unselectedLabelStyle: const TextStyle(fontSize: 11),
           elevation: 0,
           items: const [
@@ -140,7 +128,7 @@ class _HomePortalViewState extends State<HomePortalView> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // Header
+            // ---- Header gradient ----
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
@@ -164,14 +152,16 @@ class _HomePortalViewState extends State<HomePortalView> {
                                 color: Color(0xFFBDD3F5), fontSize: 13),
                           ),
                           const SizedBox(height: 2),
-                          Text(
-                            _account?.displayName ?? '...',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          _isLoading
+                              ? _Shimmer(width: 120, height: 20)
+                              : Text(
+                                  _account?.displayName ?? '--',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                         ],
                       ),
                       Row(
@@ -182,26 +172,32 @@ class _HomePortalViewState extends State<HomePortalView> {
                             onTap: () {},
                           ),
                           const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () {},
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: const Color(0xFF2563EB),
-                              child: Text(
-                                _account?.avatarInitials ?? '...',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: const Color(0xFF2563EB),
+                            child: _isLoading
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    _account?.avatarInitials ?? '?',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 24),
 
                   // Balance card
                   Container(
@@ -209,23 +205,26 @@ class _HomePortalViewState extends State<HomePortalView> {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(16),
-                      border:
-                          Border.all(color: Colors.white.withOpacity(0.15)),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.15)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
                           children: [
                             const Text(
                               'Available Balance',
                               style: TextStyle(
-                                  color: Color(0xFFBDD3F5), fontSize: 13),
+                                  color: Color(0xFFBDD3F5),
+                                  fontSize: 13),
                             ),
                             GestureDetector(
                               onTap: () => setState(
-                                  () => _balanceVisible = !_balanceVisible),
+                                  () => _balanceVisible =
+                                      !_balanceVisible),
                               child: Icon(
                                 _balanceVisible
                                     ? Icons.visibility_outlined
@@ -237,53 +236,58 @@ class _HomePortalViewState extends State<HomePortalView> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: _balanceVisible
-                              ? Text(
-                                  _account != null
-                                      ? '₹${_account!.availableBalance.toStringAsFixed(2)}'
-                                      : '...',
-                                  key: const ValueKey('visible'),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: -0.5,
-                                  ),
-                                )
-                              : const Text(
-                                  '₹ ••••••••',
-                                  key: ValueKey('hidden'),
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 2,
-                                  ),
-                                ),
-                        ),
+                        _isLoading
+                            ? _Shimmer(width: 180, height: 36)
+                            : AnimatedSwitcher(
+                                duration: const Duration(milliseconds: 300),
+                                child: _balanceVisible
+                                    ? Text(
+                                        _account != null
+                                            ? '₹${_account!.availableBalance.toStringAsFixed(2)}'
+                                            : '--',
+                                        key: const ValueKey('visible'),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: -0.5,
+                                        ),
+                                      )
+                                    : const Text(
+                                        '₹ ••••••••',
+                                        key: ValueKey('hidden'),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 2,
+                                        ),
+                                      ),
+                              ),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             const Icon(Icons.credit_card,
                                 color: Color(0xFFBDD3F5), size: 14),
                             const SizedBox(width: 6),
-                            Text(
-                              _account?.maskedAccountNumber ??
-                                  '---- ---- ---- ----',
-                              style: const TextStyle(
-                                color: Color(0xFFBDD3F5),
-                                fontSize: 13,
-                                letterSpacing: 1,
-                              ),
-                            ),
+                            _isLoading
+                                ? _Shimmer(width: 130, height: 14)
+                                : Text(
+                                    _account?.maskedAccountNumber ??
+                                        '---- ---- ---- ----',
+                                    style: const TextStyle(
+                                      color: Color(0xFFBDD3F5),
+                                      fontSize: 13,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
                             const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 8, vertical: 3),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF16A34A).withOpacity(0.2),
+                                color: const Color(0xFF16A34A)
+                                    .withOpacity(0.2),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
                                     color: const Color(0xFF16A34A)
@@ -306,41 +310,79 @@ class _HomePortalViewState extends State<HomePortalView> {
               ),
             ),
 
-            // Content below gradient
             Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Security banner
-                  Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEFF6FF),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: const Color(0xFFBFDBFE)),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.verified_user,
-                            color: Color(0xFF1D4ED8), size: 18),
-                        const SizedBox(width: 10),
-                        const Expanded(
-                          child: Text(
-                            'Your account is fully secured. Risk level: Low',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Color(0xFF1D4ED8),
-                              fontWeight: FontWeight.w500,
+                  if (_errorMessage != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: const Color(0xFFFCA5A5)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: Color(0xFFDC2626), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Color(0xFFDC2626)),
                             ),
                           ),
-                        ),
-                        const Icon(Icons.chevron_right,
-                            color: Color(0xFF1D4ED8), size: 16),
-                      ],
+                          GestureDetector(
+                            onTap: _loadDashboard,
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFFDC2626),
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(10),
+                        border:
+                            Border.all(color: const Color(0xFFBFDBFE)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.verified_user,
+                              color: Color(0xFF1D4ED8), size: 18),
+                          const SizedBox(width: 10),
+                          const Expanded(
+                            child: Text(
+                              'Your account is fully secured. Risk level: Low',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF1D4ED8),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right,
+                              color: Color(0xFF1D4ED8), size: 16),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
 
                   // Quick actions
                   const Text(
@@ -352,56 +394,154 @@ class _HomePortalViewState extends State<HomePortalView> {
                     ),
                   ),
                   const SizedBox(height: 14),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: _quickActions.map((action) {
-                      return _QuickActionButton(
-                        icon: action['icon'] as IconData,
-                        label: action['label'] as String,
-                        color: action['color'] as Color,
-                        onTap: action['label'] == 'Documents'
-                            ? () => Navigator.pushNamed(context, '/upload')
-                            : () {},
-                      );
-                    }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Stats row
-                  Row(
                     children: [
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Income',
-                          amount: _stats != null
-                              ? '₹${_stats!.totalIncome.toStringAsFixed(0)}'
-                              : '--',
-                          change: _stats != null
-                              ? '${_stats!.incomeChangePercent > 0 ? '+' : ''}${_stats!.incomeChangePercent.toStringAsFixed(1)}%'
-                              : '--',
-                          isPositive:
-                              (_stats?.incomeChangePercent ?? 0) >= 0,
-                          icon: Icons.trending_up,
-                        ),
+                      _QuickActionButton(
+                        icon: Icons.send_outlined,
+                        label: 'Transfer',
+                        color: const Color(0xFF2563EB),
+                        onTap: () {},
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _StatCard(
-                          title: 'Expenses',
-                          amount: _stats != null
-                              ? '₹${_stats!.totalExpenses.toStringAsFixed(0)}'
-                              : '--',
-                          change: _stats != null
-                              ? '${_stats!.expenseChangePercent > 0 ? '+' : ''}${_stats!.expenseChangePercent.toStringAsFixed(1)}%'
-                              : '--',
-                          isPositive:
-                              (_stats?.expenseChangePercent ?? 0) <= 0,
-                          icon: Icons.trending_down,
-                        ),
+                      _QuickActionButton(
+                        icon: Icons.qr_code_scanner_outlined,
+                        label: 'Pay',
+                        color: const Color(0xFF7C3AED),
+                        onTap: () {},
+                      ),
+                      _QuickActionButton(
+                        icon: Icons.upload_file_outlined,
+                        label: 'Upload',
+                        color: const Color(0xFF059669),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/upload'),
+                      ),
+                      _QuickActionButton(
+                        icon: Icons.folder_outlined,
+                        label: 'Documents',
+                        color: const Color(0xFF0891B2),
+                        onTap: () => Navigator.pushNamed(
+                            context, '/my-documents'),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 24),
+
+                  // My Documents card
+                  GestureDetector(
+                    onTap: () =>
+                        Navigator.pushNamed(context, '/my-documents'),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF1A3A6B)
+                                .withOpacity(0.06),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(
+                              Icons.folder_open_outlined,
+                              color: Color(0xFF1A3A6B),
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'My Documents',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w700,
+                                    color: Color(0xFF0F172A),
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'View uploaded documents and verification status',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFF94A3B8),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right,
+                              color: Color(0xFF94A3B8)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Stats cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _isLoading
+                            ? _Shimmer(width: double.infinity, height: 90)
+                            : StatsCard(
+                                title: 'Income',
+                                amount: _stats != null
+                                    ? '₹${_stats!.totalIncome.toStringAsFixed(0)}'
+                                    : '--',
+                                change: _stats != null
+                                    ? '${_stats!.incomeChangePercent > 0 ? '+' : ''}${_stats!.incomeChangePercent.toStringAsFixed(1)}%'
+                                    : '--',
+                                isPositive:
+                                    (_stats?.incomeChangePercent ?? 0) >= 0,
+                                icon: Icons.trending_up,
+                              ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _isLoading
+                            ? _Shimmer(width: double.infinity, height: 90)
+                            : StatsCard(
+                                title: 'Expenses',
+                                amount: _stats != null
+                                    ? '₹${_stats!.totalExpenses.toStringAsFixed(0)}'
+                                    : '--',
+                                change: _stats != null
+                                    ? '${_stats!.expenseChangePercent > 0 ? '+' : ''}${_stats!.expenseChangePercent.toStringAsFixed(1)}%'
+                                    : '--',
+                                isPositive:
+                                    (_stats?.expenseChangePercent ?? 0) <= 0,
+                                icon: Icons.trending_down,
+                              ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Bar chart
+                  if (_isLoading)
+                    _Shimmer(width: double.infinity, height: 220)
+                  else if (_stats != null)
+                    IncomeExpenseBarChart(
+                      totalIncome: _stats!.totalIncome,
+                      totalExpenses: _stats!.totalExpenses,
+                      incomeChangePercent: _stats!.incomeChangePercent,
+                      expenseChangePercent: _stats!.expenseChangePercent,
+                    ),
+
                   const SizedBox(height: 24),
 
                   // Recent transactions
@@ -448,49 +588,59 @@ class _HomePortalViewState extends State<HomePortalView> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Column(
-                        children: [
-                          if (_isLoading)
-                            const Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  color: Color(0xFF1A3A6B),
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                            )
-                          else if (_errorMessage != null)
-                            Padding(
+                      child: _isLoading
+                          ? Padding(
                               padding: const EdgeInsets.all(24),
-                              child: Center(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFFDC2626)),
-                                  textAlign: TextAlign.center,
+                              child: Column(
+                                children: List.generate(
+                                  3,
+                                  (i) => Padding(
+                                    padding: const EdgeInsets.only(bottom: 16),
+                                    child: Row(
+                                      children: [
+                                        _Shimmer(
+                                            width: 44,
+                                            height: 44,
+                                            radius: 10),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              _Shimmer(
+                                                  width: 140, height: 14),
+                                              const SizedBox(height: 6),
+                                              _Shimmer(
+                                                  width: 90, height: 12),
+                                            ],
+                                          ),
+                                        ),
+                                        _Shimmer(width: 70, height: 14),
+                                      ],
+                                    ),
+                                  ),
                                 ),
                               ),
                             )
-                          else if (_transactions.isEmpty)
-                            const Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Center(
-                                child: Text(
-                                  'No recent transactions',
-                                  style: TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF94A3B8)),
+                          : _transactions.isEmpty
+                              ? const Padding(
+                                  padding: EdgeInsets.all(24),
+                                  child: Center(
+                                    child: Text(
+                                      'No recent transactions',
+                                      style: TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF94A3B8)),
+                                    ),
+                                  ),
+                                )
+                              : Column(
+                                  children: _transactions
+                                      .map((tx) =>
+                                          TransactionCard(transaction: tx))
+                                      .toList(),
                                 ),
-                              ),
-                            )
-                          else
-                            ..._transactions
-                                .map((tx) => TransactionCard(transaction: tx))
-                                .toList(),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -528,6 +678,66 @@ class _HomePortalViewState extends State<HomePortalView> {
     );
   }
 }
+
+// ---------------------------------------------------------------------------
+// Shimmer loading placeholder
+// ---------------------------------------------------------------------------
+
+class _Shimmer extends StatefulWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const _Shimmer({
+    required this.width,
+    required this.height,
+    this.radius = 6,
+  });
+
+  @override
+  State<_Shimmer> createState() => _ShimmerState();
+}
+
+class _ShimmerState extends State<_Shimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        width: widget.width,
+        height: widget.height,
+        decoration: BoxDecoration(
+          color: const Color(0xFFE2E8F0),
+          borderRadius: BorderRadius.circular(widget.radius),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper widgets
+// ---------------------------------------------------------------------------
 
 class _IconHeaderButton extends StatelessWidget {
   final IconData icon;
@@ -640,82 +850,6 @@ class _QuickActionButtonState extends State<_QuickActionButton> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String amount;
-  final String change;
-  final bool isPositive;
-  final IconData icon;
-
-  const _StatCard({
-    required this.title,
-    required this.amount,
-    required this.change,
-    required this.isPositive,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1A3A6B).withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 13, color: Color(0xFF64748B)),
-              ),
-              Icon(
-                icon,
-                size: 16,
-                color: isPositive
-                    ? const Color(0xFF16A34A)
-                    : const Color(0xFFDC2626),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            amount,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '$change this month',
-            style: TextStyle(
-              fontSize: 11,
-              color: isPositive
-                  ? const Color(0xFF16A34A)
-                  : const Color(0xFFDC2626),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
       ),
     );
   }

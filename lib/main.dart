@@ -5,6 +5,7 @@ import 'views/auth/login_view.dart';
 import 'views/auth/registration_view.dart';
 import 'views/dashboard/home_portal_view.dart';
 import 'views/document/upload_wizard_view.dart';
+import 'views/document/my_documents_view.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -127,6 +128,7 @@ class SuRakshaSetu extends StatelessWidget {
         '/register': (context) => const RegistrationView(),
         '/home': (context) => const HomePortalView(),
         '/upload': (context) => const UploadWizardView(),
+        '/my-documents': (context) => const MyDocumentsView(),
       },
     );
   }

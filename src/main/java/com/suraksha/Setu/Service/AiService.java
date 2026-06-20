@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @Service
 public class AiService {
@@ -43,10 +44,23 @@ public class AiService {
         HttpEntity<MultiValueMap<String, Object>> requestEntity =
                 new HttpEntity<>(body, headers);
 
-        return restTemplate.postForObject(
-                aiServiceUrl + "/analyze-document",
-                requestEntity,
-                AiResponseDto.class
-        );
+        try {
+
+            return restTemplate.postForObject(
+                   aiServiceUrl + "/analyze-document",
+                   requestEntity,
+                   AiResponseDto.class
+            );
+
+        } catch (Exception e) {
+
+            AiResponseDto response = new AiResponseDto();
+
+            response.setRiskScore(BigDecimal.ZERO);
+            response.setDecision("PENDING_REVIEW");
+            response.setSummary("AI service unavailable");
+
+            return response;
+        }
     }
 }

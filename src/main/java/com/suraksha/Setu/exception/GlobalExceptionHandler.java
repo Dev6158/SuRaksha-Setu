@@ -59,8 +59,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleException(Exception exception) {
 
-      exception.printStackTrace();
-
       Map<String, Object> body = new LinkedHashMap<>();
       body.put("error", exception.getClass().getName());
       body.put("message", exception.getMessage());

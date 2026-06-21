@@ -59,11 +59,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
                         authorizationManagerRequestMatcherRegistry
                                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers("/api/v1/auth/register","/api/v1/auth/login","/api/v1/auth/otp/verify","/api/v1/ai/**").permitAll()
+                                .requestMatchers("/api/v1/auth/register","/api/v1/auth/login","/api/v1/auth/otp/verify","/api/v1/ai/**","/swagger-ui/**","/swagger-ui.html","/v3/api-docs/**","/api/v1/documents/types","/api/v1/forensics/documents/types").permitAll()
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/analytics/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/forensics/**").authenticated()
+                                .requestMatchers("/api/v1/forensics/documents/**").permitAll()
                                 .requestMatchers("/api/v1/documents/**").authenticated()
                                 .requestMatchers("/api/v1/account/**").authenticated()
                                 .requestMatchers("/api/v1/transactions").authenticated()

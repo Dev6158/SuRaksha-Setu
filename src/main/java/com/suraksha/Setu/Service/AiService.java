@@ -46,21 +46,21 @@ public class AiService {
 
         try {
 
-            return restTemplate.postForObject(
-                   aiServiceUrl + "/analyze-document",
-                   requestEntity,
-                   AiResponseDto.class
-            );
+            AiResponseDto response = restTemplate.postForObject(
+               aiServiceUrl + "/analyze-document",
+               requestEntity,
+               AiResponseDto.class
+            );  
 
         } catch (Exception e) {
 
-            AiResponseDto response = new AiResponseDto();
+                AiResponseDto response = new AiResponseDto();
 
-            response.setRiskScore(BigDecimal.ZERO);
-            response.setDecision("PENDING_REVIEW");
-            response.setSummary("AI service unavailable");
+                response.setRiskScore(BigDecimal.ZERO);
+                response.setDecision("PENDING_REVIEW");
+                response.setSummary("AI service unavailable");
 
-            return response;
+                return response;
         }
     }
 }

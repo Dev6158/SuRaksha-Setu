@@ -88,16 +88,11 @@ public class DocumentController {
         documentForensicLog.setRiskScore(defaultRiskScore);
         documentForensicLog.setRiskDecision(decision);
         documentForensicLog.setMetadataSnapshot(metadata);
-        System.out.println("File: " + documentUploadDto.getFile().getOriginalFilename());
-        System.out.println("Purpose: " + documentUploadDto.getPurpose());
-        System.out.println("Content Type: " + documentUploadDto.getFile().getContentType());
 
         try {
           DocumentForensicLog savedLog = this.documentRepository.save(documentForensicLog);
-          System.out.println("Saved ID: " + savedLog.getId());
           return ResponseEntity.ok(savedLog);
         } catch (Exception e) {
-          e.printStackTrace();
           throw e;
         }
     }

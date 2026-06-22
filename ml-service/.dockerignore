@@ -1,0 +1,16 @@
+# Don't copy these into the build context
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.env.*
+!.env.example
+*.joblib          # models/ are baked during the trainer stage, not copied from host
+models/
+behaviour_tracking_synthetic.csv
+.git
+.gitignore
+*.md
+docker-compose*.yml

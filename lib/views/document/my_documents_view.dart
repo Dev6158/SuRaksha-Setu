@@ -93,6 +93,40 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
       ),
       body: Column(
         children: [
+          // Summary strip
+          if (!_isLoading && _documents.isNotEmpty)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                children: [
+                  _SummaryTile(
+                    count: _documents
+                        .where((d) => d.status == 'pending_review')
+                        .length,
+                    label: 'Pending',
+                    status: 'pending_review',
+                  ),
+                  const SizedBox(width: 8),
+                  _SummaryTile(
+                    count: _documents
+                        .where((d) => d.status == 'approved')
+                        .length,
+                    label: 'Approved',
+                    status: 'approved',
+                  ),
+                  const SizedBox(width: 8),
+                  _SummaryTile(
+                    count: _documents
+                        .where((d) => d.status == 'rejected')
+                        .length,
+                    label: 'Rejected',
+                    status: 'rejected',
+                  ),
+                ],
+              ),
+            ),
+
           // Filter chips
           Container(
             color: Colors.white,
@@ -133,6 +167,32 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
             ),
           ),
 
+          // AI analysis notice
+          Container(
+            margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFBFDBFE)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.auto_awesome,
+                    color: Color(0xFF1D4ED8), size: 16),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Tap "Analyse" on any document to run AI risk analysis and get a detailed summary.',
+                    style: TextStyle(
+                        fontSize: 12, color: Color(0xFF1D4ED8)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -149,7 +209,8 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
                             color: const Color(0xFF1A3A6B),
                             onRefresh: _loadDocuments,
                             child: ListView.separated(
-                              padding: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.fromLTRB(
+                                  16, 0, 16, 100),
                               itemCount: _filteredDocuments.length,
                               separatorBuilder: (_, __) =>
                                   const SizedBox(height: 10),
@@ -161,6 +222,11 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
                                   fileName: doc.documentName,
                                   status: doc.status,
                                   uploadedAt: doc.uploadedAt,
+                                  // fileBytes will be null here since we
+                                  // don't cache bytes from the list API.
+                                  // The card handles this gracefully by
+                                  // showing a re-upload message.
+                                  fileBytes: null,
                                 );
                               },
                             ),
@@ -175,7 +241,8 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
           'Upload Document',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -202,6 +269,10 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
               onPressed: _loadDocuments,
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1A3A6B),
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
@@ -218,8 +289,8 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
           children: [
             Container(
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEFF6FF),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEFF6FF),
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.folder_open_outlined,
@@ -239,12 +310,14 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
             const SizedBox(height: 8),
             const Text(
               'Upload your documents to get started.',
-              style: TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
+              style:
+                  TextStyle(fontSize: 14, color: Color(0xFF94A3B8)),
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/upload')
-                  .then((_) => _loadDocuments()),
+              onPressed: () =>
+                  Navigator.pushNamed(context, '/upload')
+                      .then((_) => _loadDocuments()),
               icon: const Icon(Icons.upload_file_outlined),
               label: const Text('Upload Now'),
               style: ElevatedButton.styleFrom(
@@ -257,30 +330,6 @@ class _MyDocumentsViewState extends State<MyDocumentsView> {
       ),
     );
   }
-}
-
-// ignore: unused_element
-Widget _buildStatusSummary(List<UploadedDocument> docs) {
-  final pending =
-      docs.where((d) => d.status == 'pending_review').length;
-  final approved = docs.where((d) => d.status == 'approved').length;
-  final rejected = docs.where((d) => d.status == 'rejected').length;
-
-  return Row(
-    children: [
-      Expanded(
-          child: _SummaryTile(
-              count: pending, label: 'Pending', status: 'pending_review')),
-      const SizedBox(width: 8),
-      Expanded(
-          child: _SummaryTile(
-              count: approved, label: 'Approved', status: 'approved')),
-      const SizedBox(width: 8),
-      Expanded(
-          child: _SummaryTile(
-              count: rejected, label: 'Rejected', status: 'rejected')),
-    ],
-  );
 }
 
 class _SummaryTile extends StatelessWidget {
@@ -296,26 +345,28 @@ class _SummaryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            '$count',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF0F172A),
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              '$count',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF0F172A),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          StatusChip.fromString(status, fontSize: 10),
-        ],
+            const SizedBox(height: 4),
+            StatusChip.fromString(status, fontSize: 10),
+          ],
+        ),
       ),
     );
   }

@@ -3,9 +3,7 @@ import tempfile
 
 BASE_URL = "http://localhost:8080"
 
-
 def test_document_types():
-
     response = requests.get(
         f"{BASE_URL}/api/v1/documents/types"
     )
@@ -27,17 +25,9 @@ def test_document_upload_endpoint():
 
             response = requests.post(
                 f"{BASE_URL}/api/v1/documents/upload",
-                files={
-                    "file": f
-                },
-                data={
-                    "purpose": "integration-test"
-                }
+                files={"file": f},
+                data={"purpose": "integration-test"}
             )
 
-        assert response.status_code in [
-            200,
-            201,
-            401,
-            403
-        ]
+    # endpoint requires authentication
+    assert response.status_code in [200, 201, 401, 403]

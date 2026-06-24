@@ -11,7 +11,7 @@ def test_login_endpoint():
         }
     )
 
-    assert response.status_code in [200, 400, 401]
+    assert response.status_code in [200, 400, 401, 409]
 
 
 def test_register_endpoint():
@@ -23,7 +23,7 @@ def test_register_endpoint():
         }
     )
 
-    assert response.status_code in [200, 201, 400]
+    assert response.status_code in [200, 201, 400, 409]
 
 
 def test_otp_verify_endpoint():

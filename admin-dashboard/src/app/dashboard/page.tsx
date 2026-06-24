@@ -1,5 +1,6 @@
 import Sidebar from "@/components/Sidebar";
 import RiskDistributionChart from "@/components/RiskDistributionChart";
+import RiskTrendChart from "@/components/RiskTrendChart";
 
 export default function DashboardPage() {
   return (
@@ -34,6 +35,7 @@ export default function DashboardPage() {
         </div>
 
         <RiskDistributionChart />
+        <RiskTrendChart />
       </div>
     </div>
   );

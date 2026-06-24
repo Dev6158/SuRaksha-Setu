@@ -61,6 +61,12 @@ services:
       AI_SERVICE_URL: http://ml-service:8000
     networks:
       - suraksha-network 
+    healthcheck:
+      test: ["CMD", "java", "-version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
 
   ml-service:
     container_name: suraksha-ml
@@ -73,7 +79,7 @@ services:
     networks:
       - suraksha-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/docs"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
       interval: 30s
       timeout: 10s
       retries: 5

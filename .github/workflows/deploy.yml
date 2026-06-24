@@ -1,83 +1,111 @@
-name: SuRaksha CI
+name: SuRaksha CI/CD
 
 on:
-push:
-branches:
-- main
-- integration-test
-- devops-amrita
+  push:
+    branches:
+      - main
+      - integration-test
+      - devops-amrita
+      - backend_oishika
+      - Frontend_Procheta
+      - shreya
 
-pull_request:
-branches:
-- main
+  pull_request:
+    branches:
+      - main
+      - integration-test
 
 jobs:
-build-backend:
-runs-on: ubuntu-latest
+  build-backend:
+    name: Build Spring Boot Backend
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Setup Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: 21
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
 
-  - name: Build Backend
-    run: mvn clean package -DskipTests
-```
+      - name: Build Backend
+        run: mvn clean package -DskipTests
 
-build-python:
-runs-on: ubuntu-latest
+  build-python:
+    name: Validate ML Service
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Setup Python
-    uses: actions/setup-python@v5
-    with:
-      python-version: "3.11"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-  - name: Install Python Dependencies
-    run: |
-      pip install -r requirements.txt
-```
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
 
-build-dashboard:
-runs-on: ubuntu-latest
+  build-dashboard:
+    name: Build Next.js Dashboard
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Setup Node.js
-    uses: actions/setup-node@v4
-    with:
-      node-version: 20
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-  - name: Install Dashboard Dependencies
-    working-directory: admin-dashboard
-    run: npm install
+      - name: Install Dashboard Dependencies
+        working-directory: admin-dashboard
+        run: npm install
 
-  - name: Build Dashboard
-    working-directory: admin-dashboard
-    run: npm run build
-```
+      - name: Build Dashboard
+        working-directory: admin-dashboard
+        run: npm run build
 
-validate-docker:
-runs-on: ubuntu-latest
+  validate-docker:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
 
-```
-steps:
-  - name: Checkout Repository
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-  - name: Validate Docker Compose
-    run: docker compose -f infra/docker-compose.yml config
-```
+      - name: Validate Docker Compose
+        run: docker compose -f infra/docker-compose.yml config
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Images
+        run: docker compose -f infra/docker-compose.yml build
+
+  merge-readiness:
+    name: Merge Readiness Check
+    runs-on: ubuntu-latest
+
+    needs:
+      - build-backend
+      - build-python
+      - build-dashboard
+      - validate-docker
+      - docker-build
+
+    steps:
+      - name: Success Message
+        run: |
+          echo "All validation checks passed."
+          echo "Branch is ready for integration."

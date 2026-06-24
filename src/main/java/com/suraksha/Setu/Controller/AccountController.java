@@ -12,7 +12,6 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -42,6 +41,28 @@ public class AccountController {
         response.put("documentsUploaded", logs.size());
         response.put("highRiskEvents", highRiskCount);
         response.put("accountStatus", user.isEnabled() ? "ACTIVE" : "DISABLED");
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/api/v1/account/risk-distribution")
+    public ResponseEntity<Map<String, Object>> getRiskDistribution(Authentication authentication) {
+        User user = loadCurrentUser(authentication);
+        RiskDistribution riskDistribution = new RiskDistribution();
+
+        for (DocumentForensicLog log : this.documentRepository.findByUserIdOrderByCreatedAtDesc(user.getId())) {
+            riskDistribution.increment(log.getRiskScore());
+        }
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("low", riskDistribution.getLow());
+        response.put("medium", riskDistribution.getMedium());
+        response.put("high", riskDistribution.getHigh());
+        response.put("total", riskDistribution.getTotal());
+        response.put("buckets", List.of(
+                Map.of("label", "Low", "count", riskDistribution.getLow()),
+                Map.of("label", "Medium", "count", riskDistribution.getMedium()),
+                Map.of("label", "High", "count", riskDistribution.getHigh())));
+
         return ResponseEntity.ok(response);
     }
 
@@ -124,6 +145,43 @@ public class AccountController {
 
         public int getHighRisk() {
             return this.highRisk;
+        }
+    }
+
+    private static class RiskDistribution {
+
+        private int low;
+        private int medium;
+        private int high;
+
+        public void increment(BigDecimal riskScore) {
+            if (riskScore == null || riskScore.compareTo(new BigDecimal("0.4000")) < 0) {
+                this.low = this.low + 1;
+                return;
+            }
+
+            if (riskScore.compareTo(new BigDecimal("0.7000")) < 0) {
+                this.medium = this.medium + 1;
+                return;
+            }
+
+            this.high = this.high + 1;
+        }
+
+        public int getLow() {
+            return this.low;
+        }
+
+        public int getMedium() {
+            return this.medium;
+        }
+
+        public int getHigh() {
+            return this.high;
+        }
+
+        public int getTotal() {
+            return this.low + this.medium + this.high;
         }
     }
 }

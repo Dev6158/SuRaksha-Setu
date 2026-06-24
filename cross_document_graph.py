@@ -122,3 +122,43 @@ class CrossDocumentGraph:
             "contradictions": contradictions,
             "risk": "HIGH" if contradictions else "LOW"
         }
+
+    def analyze(self, text: str) -> Dict[str, Any]:
+
+        entities = self.extract_entities(text)
+
+        contradictions = []
+
+        if entities["name"] is None:
+            contradictions.append("NAME_MISSING")
+
+        if entities["pan"] is None:
+            contradictions.append("PAN_MISSING")
+
+        if entities["employer"] is None:
+            contradictions.append("EMPLOYER_MISSING")
+
+        if entities["income"] is None:
+            contradictions.append("INCOME_MISSING")
+
+        score = min(len(contradictions) * 0.25, 1.0)
+
+        return {
+            "score": score,
+            "contradictions": contradictions,
+            "entities": entities
+        }
+
+
+if __name__ == "__main__":
+
+    sample_text = """
+    Name: Arnav Vivek
+    PAN: ABCDE1234F
+    Employer: Yaskawa
+    Income: ₹500000
+    """
+
+    graph = CrossDocumentGraph()
+
+    print(graph.analyze(sample_text))

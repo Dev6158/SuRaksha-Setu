@@ -59,6 +59,67 @@ class UploadedDocument {
 }
 
 // ---------------------------------------------------------------------------
+// Analysis result model
+// ---------------------------------------------------------------------------
+
+enum RiskLevel { low, medium, high, unknown }
+
+class DocumentAnalysis {
+  final double riskScore;
+  final String decision;
+  final String summary;
+  final RiskLevel riskLevel;
+
+  const DocumentAnalysis({
+    required this.riskScore,
+    required this.decision,
+    required this.summary,
+    required this.riskLevel,
+  });
+
+  factory DocumentAnalysis.fromJson(Map<String, dynamic> json) {
+    final decision = (json['decision'] as String? ?? '').toUpperCase();
+
+    RiskLevel level;
+    switch (decision) {
+      case 'LOW_RISK':
+        level = RiskLevel.low;
+        break;
+      case 'MEDIUM_RISK':
+        level = RiskLevel.medium;
+        break;
+      case 'HIGH_RISK':
+        level = RiskLevel.high;
+        break;
+      default:
+        level = RiskLevel.unknown;
+    }
+
+    return DocumentAnalysis(
+      riskScore: (json['riskScore'] as num? ?? 0).toDouble(),
+      decision: decision,
+      summary: json['summary'] as String? ?? 'No summary available.',
+      riskLevel: level,
+    );
+  }
+
+  String get riskLabel {
+    switch (riskLevel) {
+      case RiskLevel.low:
+        return 'Low Risk';
+      case RiskLevel.medium:
+        return 'Medium Risk';
+      case RiskLevel.high:
+        return 'High Risk';
+      case RiskLevel.unknown:
+        return 'Unknown';
+    }
+  }
+
+  String get riskPercent => '${(riskScore * 100).toStringAsFixed(0)}%';
+}
+
+// ---------------------------------------------------------------------------
 // DocumentService
 // ---------------------------------------------------------------------------
 
@@ -83,7 +144,6 @@ class DocumentService {
 
     return ApiResponse.success(list);
   } catch (e) {
-    print(e);
     return const ApiResponse.failure(
       'Failed to parse document types.',
     );
@@ -126,10 +186,7 @@ class DocumentService {
       fieldName: 'file',
       fields: {'purpose': documentTypeId},
     );
-
-    if (!response.isSuccess) {
-      return ApiResponse.failure(response.error);
-    }
+    if (!response.isSuccess) return ApiResponse.failure(response.error);
     try {
       return ApiResponse.success(
         UploadedDocument.fromJson(
@@ -140,7 +197,24 @@ class DocumentService {
           'Upload succeeded but response was unexpected.');
     }
   }
-
-  /// List all documents uploaded by the current user.
- 
+  /// Sends file bytes to POST /analyze-document for AI analysis.
+  /// Returns riskScore, decision (LOW_RISK/MEDIUM_RISK/HIGH_RISK), summary.
+  Future<ApiResponse<DocumentAnalysis>> analyzeDocument({
+    required List<int> fileBytes,
+    required String fileName,
+  }) async {
+    final response = await _api.uploadFile(
+      path: '/analyze-document',
+      fileBytes: fileBytes,
+      fileName: fileName,
+      fieldName: 'file',
+    );
+    if (!response.isSuccess) return ApiResponse.failure(response.error);
+    try {
+      return ApiResponse.success(DocumentAnalysis.fromJson(response.data!));
+    } catch (_) {
+      return const ApiResponse.failure(
+          'Analysis completed but response was unexpected.');
+    }
+  }
 }

@@ -40,6 +40,12 @@ public class DocumentForensicLog {
     @Column(name = "sha256_hash", nullable = false, length = 64)
     private String sha256Hash;
 
+    @Column(name = "stored_file_path", nullable = false, length = 1024)
+    private String storedFilePath;
+
+    @Column(name = "file_size_bytes", nullable = false)
+    private long fileSizeBytes;
+
     @Column(name = "risk_score", nullable = false, precision = 5, scale = 4)
     private BigDecimal riskScore;
 
@@ -105,6 +111,22 @@ public class DocumentForensicLog {
 
     public void setSha256Hash(String sha256Hash) {
         this.sha256Hash = sha256Hash;
+    }
+
+    public String getStoredFilePath() {
+        return this.storedFilePath;
+    }
+
+    public void setStoredFilePath(String storedFilePath) {
+        this.storedFilePath = storedFilePath;
+    }
+
+    public long getFileSizeBytes() {
+        return this.fileSizeBytes;
+    }
+
+    public void setFileSizeBytes(long fileSizeBytes) {
+        this.fileSizeBytes = fileSizeBytes;
     }
 
     public BigDecimal getRiskScore() {

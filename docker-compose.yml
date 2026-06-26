@@ -1,0 +1,43 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: suraksha-postgres
+    environment:
+      POSTGRES_DB: suraksha
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: change_me
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: suraksha-redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: suraksha-backend
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/suraksha
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: change_me
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SECURITY_JWT_SECRET: change-this-to-a-long-secret-at-least-32-chars
+      SECURITY_JWT_TTL_SECONDS: 3600
+      ML_FASTAPI_BASE_URL: http://ai-service:8000
+      ML_FASTAPI_RISK_PATH: /score
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:

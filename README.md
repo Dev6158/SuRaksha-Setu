@@ -27,6 +27,7 @@
 - [Tech Stack](#-tech-stack)
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
+- [Screenshots](#-screenshots)
 - [Team](#-team)
 
 ---
@@ -129,17 +130,23 @@ Together, these modules act as a *bridge* (Setu) between raw data and trustworth
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
-|-------|-----------|
-| **Frontend** | React.js, Tailwind CSS |
-| **Backend** | Python (FastAPI / Flask) |
-| **Document OCR** | Tesseract OCR, OpenCV |
-| **ML / AI Models** | Scikit-learn, PyTorch / TensorFlow |
-| **NLP (Compliance)** | spaCy, HuggingFace Transformers |
-| **Agentic Framework** | LangChain / LlamaIndex |
-| **Database** | PostgreSQL, Redis (caching) |
-| **Storage** | MinIO (on-premise object storage) |
-| **Auth** | JWT + RBAC |
-| **DevOps** | Docker, Docker Compose |
+|---|---|
+| **Frontend Dashboard** | Next.js 16, TypeScript, Tailwind CSS, Recharts |
+| **Backend API** | Spring Boot (Java 21), Maven |
+| **AI/ML Service** | FastAPI (Python 3.11) |
+| **Document Forensics** | OpenCV, NumPy, ELA & FFT Analysis |
+| **ML / AI Models** | Scikit-learn, Joblib |
+| **Database** | PostgreSQL 17 |
+| **Cache & Session Store** | Redis 8 |
+| **Authentication & Security** | JWT, Role-Based Access Control (RBAC) |
+| **API Documentation** | Swagger UI, OpenAPI 3 |
+| **Containerisation** | Docker, Docker Compose |
+| **CI/CD** | GitHub Actions |
+| **Monitoring & Health Checks** | Spring Boot Actuator, Docker Healthchecks |
+| **Testing** | Pytest, Integration Testing Suite |
+| **Version Control** | Git, GitHub |
+| **Infrastructure** | Docker Bridge Networking, Persistent Volumes |
+| **Development Tools** | VS Code, Postman, Docker Desktop |
 
 ---
 
@@ -147,49 +154,64 @@ Together, these modules act as a *bridge* (Setu) between raw data and trustworth
 
 ### Prerequisites
 
-- Python 3.10+
-- Node.js 18+
-- Docker & Docker Compose
+Ensure the following are installed:
 
-### Installation
+| Tool | Version |
+|---|---|
+| Docker Desktop | Latest |
+| Docker Compose | Latest |
+| Git | Latest |
+| Java | 21+ *(for local backend development)* |
+| Node.js | 20+ *(for local dashboard development)* |
+| Python | 3.11+ *(for ML service development)* |
+
+### 1. Clone the Repository
 
 ```bash
-# 1. Clone the repository
 git clone https://github.com/Dev6158/SuRaksha-Setu.git
 cd SuRaksha-Setu
-
-# 2. Set up backend
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-
-# 3. Set up frontend
-cd ../frontend
-npm install
-
-# 4. Configure environment
-cp .env.example .env
-# Edit .env with your database and API credentials
-
-# 5. Start all services with Docker
-cd ..
-docker-compose up --build
 ```
 
-### Running Locally (without Docker)
+### 2. Configure Environment
+
+Create `infra/.env` (see `infra/.env.example`):
+
+```env
+POSTGRES_DB=suraksha
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=change_me
+
+SPRING_PORT=8080
+FASTAPI_PORT=8000
+NEXT_PORT=3000
+```
+
+### 3. Run with Docker *(Recommended)*
 
 ```bash
-# Start backend
-cd backend
-uvicorn main:app --reload --port 8000
+# Build and start all services
+docker compose -f infra/docker-compose.yml up -d --build
 
-# Start frontend (new terminal)
-cd frontend
-npm run dev
+# Verify all containers are healthy
+docker compose -f infra/docker-compose.yml ps
 ```
 
-The app will be available at `http://localhost:3000`
+### 4. Access Services
+
+| Service | URL |
+|---|---|
+| 🖥️ Admin Dashboard | http://localhost:3000 |
+| ⚙️ Backend API | http://localhost:8080 |
+| 📖 Swagger UI | http://localhost:8080/swagger-ui/index.html |
+| 🤖 ML Service Health | http://localhost:8000/healthz |
+
+### 5. Run Integration Tests
+
+```bash
+py -m pytest integration-tests -v
+```
+
+Expected result: **14 passed** ✅
 
 ---
 
@@ -197,25 +219,128 @@ The app will be available at `http://localhost:3000`
 
 ```
 SuRaksha-Setu/
-├── backend/
-│   ├── api/                    # FastAPI route handlers
-│   ├── models/                 # ML model definitions & weights
-│   ├── services/
-│   │   ├── document_engine/    # OCR, tamper detection pipeline
-│   │   └── compliance_agent/   # Regulatory crawler & NLP agent
-│   ├── utils/                  # Helpers, preprocessing tools
-│   ├── requirements.txt
-│   └── main.py
-├── frontend/
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+│
+├── admin-dashboard/                   # Next.js frontend dashboard
 │   ├── src/
-│   │   ├── components/         # Reusable React components
-│   │   ├── pages/              # Dashboard, Upload, Compliance pages
-│   │   └── services/           # API integration layer
-│   └── package.json
-├── docker-compose.yml
-├── .env.example
-└── README.md
+│   │   ├── app/
+│   │   │   └── dashboard/
+│   │   ├── components/
+│   │   │   ├── Sidebar.tsx
+│   │   │   ├── RiskDistributionChart.tsx
+│   │   │   └── RiskTrendChart.tsx
+│   │   ├── hooks/
+│   │   │   └── useDashboardData.ts
+│   │   └── lib/
+│   │       └── api.ts
+│   ├── Dockerfile
+│   ├── .dockerignore
+│   ├── package.json
+│   └── next.config.ts
+│
+├── android/
+├── ios/
+├── linux/
+├── macos/
+│
+├── docs/                              # Project documentation
+│   ├── AI_API_CONTRACT.md
+│   ├── API_CONTRACTS.md
+│   ├── DEPLOYMENT.md
+│   ├── DEPLOYMENT_PLAN.md
+│   ├── INTEGRATION_REPORT.md
+│   └── TODO.md
+│
+├── infra/                             # Infrastructure & Docker config
+│   ├── .env.example
+│   ├── docker-compose.yml
+│   ├── prometheus.yml
+│   └── setup_secrets.sh
+│
+├── integration-tests/                 # Pytest integration suite
+│   ├── test_ai.py
+│   ├── test_auth.py
+│   ├── test_dashboard.py
+│   ├── test_system_integration.py
+│   └── test_upload.py
+│
+├── ml-service/                        # FastAPI ML service (AI/ML layer)
+│   ├── app.py
+│   ├── Dockerfile.forensic
+│   ├── Dockerfile.behavioral
+│   ├── docker-compose.ml.yml
+│   └── requirements.txt
+│
+├── src/                               # Spring Boot backend
+│   ├── main/
+│   │   ├── java/com/suraksha/Setu/
+│   │   │   ├── Config/
+│   │   │   ├── Controller/
+│   │   │   ├── dto/
+│   │   │   ├── Entity/
+│   │   │   ├── exception/
+│   │   │   ├── Repo/
+│   │   │   ├── Security/
+│   │   │   ├── Service/
+│   │   │   ├── Websocket/
+│   │   │   └── DemoApplication.java
+│   │   └── resources/
+│   └── test/
+│       └── java/com/suraksha/Setu/
+│
+├── app.py                             # Root-level ML entrypoints
+├── forensic_engine.py
+├── behavioral_analytics_engine.py
+├── cross_document_graph.py
+├── generate_training_data.py
+├── train_and_persist.py
+├── schemas.py
+├── utils.py
+│
+├── Dockerfile
+├── Makefile
+├── pom.xml
+├── openapi_spec.yaml
+├── requirements.txt
+├── README.md
+├── mvnw
+└── mvnw.cmd
 ```
+
+---
+
+## 📸 Screenshots
+
+> All services running — captured live from the prototype deployment.
+
+**Docker Desktop — All Containers Healthy**
+
+![Docker containers running](docs/screenshots/docker-running.jpeg)
+*dashboard · ml-service · backend · postgres · redis — all green*
+
+---
+
+**Mobile App — Login Screen** *(Flutter)*
+
+![Login screen](docs/screenshots/login-screen.jpeg)
+*"Your trusted bridge to secure digital banking." — SuRaksha Setu mobile client*
+
+---
+
+**Mobile App — Home Dashboard** *(Flutter)*
+
+![Home dashboard](docs/screenshots/home-dashboard.jpeg)
+*Live balance card, risk level indicator, quick actions (Transfer · Pay · Upload · Documents)*
+
+---
+
+**Admin Dashboard — Incident Command** *(Next.js)*
+
+![Admin dashboard](docs/screenshots/admin-dashboard.jpeg)
+*Risk distribution breakdown (Low / Medium / High), document upload stats, and monthly statistics chart*
 
 ---
 
@@ -227,7 +352,7 @@ SuRaksha-Setu/
 | Oishika | Backend Engineering |
 | Amrita | DevOps & Integration |
 | Shreya | AI/ML Engineering |
-| Debansh | Team Lead · Architecture Design · AI/ML Engineering |
+| **Debansh** | **Team Lead · Architecture Design · AI/ML Engineering** |
 
 ---
 

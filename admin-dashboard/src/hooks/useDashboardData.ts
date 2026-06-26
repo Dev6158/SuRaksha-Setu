@@ -60,6 +60,12 @@ export function useDashboardData() {
 
   useEffect(() => {
     async function loadData() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        return;
+      }
+
       try {
         const [
           summaryData,
@@ -78,7 +84,10 @@ export function useDashboardData() {
         setMonthlyStats(monthlyData);
         setTransactions(transactionData);
       } catch (error) {
-        console.error("Dashboard data loading failed:", error);
+        console.error(
+          "Dashboard data loading failed:",
+          error
+        );
       }
     }
 

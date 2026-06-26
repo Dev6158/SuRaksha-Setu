@@ -1,10 +1,57 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+  function authHeaders() {
+  const token = localStorage.getItem("token");
+
+  return {
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
+  };
+}
+
+export async function login(
+  username: string,
+  password: string
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/auth/login`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username,
+        password,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error("Login failed");
+  }
+
+  const data = await response.json();
+
+  localStorage.setItem(
+    "token",
+    data.accessToken
+  );
+  localStorage.setItem(
+  "user",
+  JSON.stringify(data.user)
+  );
+
+
+  return data;
+}
+
 export async function getAccountSummary() {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/account/summary`,
     {
+      headers: authHeaders(),
       cache: "no-store",
     }
   );
@@ -19,7 +66,10 @@ export async function getAccountSummary() {
 export async function getRiskDistribution() {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/account/risk-distribution`,
-    { cache: "no-store" }
+    { 
+      headers: authHeaders(),
+      cache: "no-store",
+    }
   );
 
   if (!response.ok) {
@@ -32,7 +82,10 @@ export async function getRiskDistribution() {
 export async function getMonthlyStats() {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/account/monthly-stats`,
-    { cache: "no-store" }
+    { 
+      headers: authHeaders(),
+      cache: "no-store", 
+    }
   );
 
   if (!response.ok) {
@@ -45,7 +98,10 @@ export async function getMonthlyStats() {
 export async function getTransactions() {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/transactions`,
-    { cache: "no-store" }
+    { 
+      headers: authHeaders(),
+      cache: "no-store",
+    }
   );
 
   if (!response.ok) {

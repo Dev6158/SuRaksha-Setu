@@ -16,72 +16,40 @@ export async function getAccountSummary() {
   return response.json();
 }
 
-export async function getHourlyRiskTrends(
-  windowStart: string,
-  windowEnd: string
-) {
-  const params = new URLSearchParams({
-    windowStart,
-    windowEnd,
-  });
-
+export async function getRiskDistribution() {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/analytics/risk-events/trends/hourly?${params}`,
-    {
-      cache: "no-store",
-    }
+    `${API_BASE_URL}/api/v1/account/risk-distribution`,
+    { cache: "no-store" }
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch hourly trends");
+    throw new Error("Failed to fetch risk distribution");
   }
 
   return response.json();
 }
 
-export async function getHighRiskEvents(
-  windowStart: string,
-  windowEnd: string,
-  minimumRiskScore = 80
-) {
-  const params = new URLSearchParams({
-    windowStart,
-    windowEnd,
-    minimumRiskScore: minimumRiskScore.toString(),
-  });
-
+export async function getMonthlyStats() {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/analytics/risk-events/high-risk?${params}`,
-    {
-      cache: "no-store",
-    }
+    `${API_BASE_URL}/api/v1/account/monthly-stats`,
+    { cache: "no-store" }
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch high risk events");
+    throw new Error("Failed to fetch monthly stats");
   }
 
   return response.json();
 }
 
-export async function getRiskEvents(
-  windowStart: string,
-  windowEnd: string
-) {
-  const params = new URLSearchParams({
-    windowStart,
-    windowEnd,
-  });
-
+export async function getTransactions() {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/analytics/risk-events?${params}`,
-    {
-      cache: "no-store",
-    }
+    `${API_BASE_URL}/api/v1/transactions`,
+    { cache: "no-store" }
   );
 
   if (!response.ok) {
-    throw new Error("Failed to fetch risk events");
+    throw new Error("Failed to fetch transactions");
   }
 
   return response.json();

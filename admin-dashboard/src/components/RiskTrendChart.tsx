@@ -7,40 +7,67 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { hour: "08:00", incidents: 5 },
-  { hour: "09:00", incidents: 12 },
-  { hour: "10:00", incidents: 9 },
-  { hour: "11:00", incidents: 18 },
-  { hour: "12:00", incidents: 22 },
-  { hour: "13:00", incidents: 15 },
-];
+type MonthlyStat = {
+  month: string;
+  documentsUploaded: number;
+  highRiskEvents: number;
+};
 
-export default function RiskTrendChart() {
+type RiskTrendChartProps = {
+  data: MonthlyStat[];
+};
+
+export default function RiskTrendChart({
+  data,
+}: RiskTrendChartProps) {
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-white rounded-xl shadow p-6 mt-6">
+        <h2 className="text-2xl font-bold mb-4">
+          Monthly Statistics
+        </h2>
+
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-xl shadow p-6 mt-6">
       <h2 className="text-2xl font-bold mb-4">
-        Risk Trends
+        Monthly Statistics
       </h2>
 
-      <LineChart
-        width={900}
-        height={300}
-        data={data}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="hour" />
-        <YAxis />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey="incidents"
-          stroke="#ef4444"
-          strokeWidth={3}
-        />
-      </LineChart>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+
+          <XAxis dataKey="month" />
+
+          <YAxis />
+
+          <Tooltip />
+
+          <Line
+            type="monotone"
+            dataKey="documentsUploaded"
+            stroke="#2563eb"
+            strokeWidth={3}
+            name="Documents Uploaded"
+          />
+
+          <Line
+            type="monotone"
+            dataKey="highRiskEvents"
+            stroke="#ef4444"
+            strokeWidth={3}
+            name="High Risk Events"
+          />
+        </LineChart>
+      </ResponsiveContainer>
     </div>
   );
 }

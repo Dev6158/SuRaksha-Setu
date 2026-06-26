@@ -3,34 +3,82 @@
 import { useEffect, useState } from "react";
 import {
   getAccountSummary,
-  getHourlyRiskTrends,
+  getRiskDistribution,
+  getMonthlyStats,
+  getTransactions,
 } from "@/lib/api";
 
+type AccountSummary = {
+  userId: string;
+  username: string;
+  email: string;
+  roles: string[];
+  documentsUploaded: number;
+  highRiskEvents: number;
+  accountStatus: string;
+};
+
+type RiskDistribution = {
+  low: number;
+  medium: number;
+  high: number;
+  total: number;
+  buckets: {
+    label: string;
+    count: number;
+  }[];
+};
+
+type MonthlyStat = {
+  month: string;
+  documentsUploaded: number;
+  highRiskEvents: number;
+};
+
+type Transaction = {
+  id: string;
+  type: string;
+  documentName: string;
+  contentType: string;
+  sha256Hash: string;
+  riskScore: number;
+  riskDecision: string;
+  createdAt: string;
+};
+
 export function useDashboardData() {
-  const [summary, setSummary] = useState(null);
-  const [trendData, setTrendData] = useState([]);
+  const [summary, setSummary] = useState<AccountSummary | null>(null);
+
+  const [riskDistribution, setRiskDistribution] =
+    useState<RiskDistribution | null>(null);
+
+  const [monthlyStats, setMonthlyStats] =
+    useState<MonthlyStat[]>([]);
+
+  const [transactions, setTransactions] =
+    useState<Transaction[]>([]);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const now = new Date();
-        const yesterday = new Date(
-          now.getTime() - 24 * 60 * 60 * 1000
-        );
-
-        const start = yesterday.toISOString();
-        const end = now.toISOString();
-
-        const summaryData =
-          await getAccountSummary();
-
-        const trendResponse =
-          await getHourlyRiskTrends(start, end);
+        const [
+          summaryData,
+          distributionData,
+          monthlyData,
+          transactionData,
+        ] = await Promise.all([
+          getAccountSummary(),
+          getRiskDistribution(),
+          getMonthlyStats(),
+          getTransactions(),
+        ]);
 
         setSummary(summaryData);
-        setTrendData(trendResponse);
+        setRiskDistribution(distributionData);
+        setMonthlyStats(monthlyData);
+        setTransactions(transactionData);
       } catch (error) {
-        console.error(error);
+        console.error("Dashboard data loading failed:", error);
       }
     }
 
@@ -43,6 +91,8 @@ export function useDashboardData() {
 
   return {
     summary,
-    trendData,
+    riskDistribution,
+    monthlyStats,
+    transactions,
   };
 }

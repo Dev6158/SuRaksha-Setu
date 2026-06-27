@@ -56,9 +56,11 @@ services:
       DB_NAME: ${POSTGRES_DB}
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DOCUMENT_STORAGE_ROOT: /tmp/uploads
       REDIS_HOST: redis
       REDIS_PORT: 6379
-      AI_SERVICE_URL: http://ml-service:8000
+      AI_SERVICE_URL: http://ml-forensic:8000
+      ML_BEHAVIORAL_URL: http://ml-behavioral:8080
     networks:
       - suraksha-network 
     healthcheck:
@@ -67,19 +69,38 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    volumes:
+      - backend_uploads:/tmp/uploads
 
-  ml-service:
-    container_name: suraksha-ml
+  ml-forensic:
+    container_name: suraksha-forensic
     restart: unless-stopped
     build:
       context: ..
       dockerfile: ml-service/Dockerfile.forensic
     ports:
-      - "${FASTAPI_PORT}:8000"
+      - "${FASTAPI_PORT:-8000}:8000"
     networks:
       - suraksha-network
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  ml-behavioral:
+    container_name: suraksha-behavioral
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: ml-service/Dockerfile.behavioral
+    ports:
+      - "${BEHAVIORAL_PORT:-8081}:8080"
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -101,6 +122,7 @@ services:
 
 volumes:
   postgres_data:
+  backend_uploads:
 
 networks:
   suraksha-network:

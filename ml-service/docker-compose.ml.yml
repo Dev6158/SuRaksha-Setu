@@ -20,8 +20,8 @@ services:
   behavioral:
     container_name: suraksha-behavioral
     build:
-      context: .                          # ml-service/ directory
-      dockerfile: Dockerfile.behavioral
+      context: ..
+      dockerfile: ml-service/Dockerfile.behavioral
     restart: unless-stopped
     ports:
       - "${BEHAVIORAL_PORT:-8080}:8080"
@@ -46,8 +46,8 @@ services:
   forensic:
     container_name: suraksha-forensic
     build:
-      context: .
-      dockerfile: Dockerfile.forensic
+      context: ..
+      dockerfile: ml-service/Dockerfile.forensic
     restart: unless-stopped
     ports:
       - "${FORENSIC_PORT:-8000}:8000"

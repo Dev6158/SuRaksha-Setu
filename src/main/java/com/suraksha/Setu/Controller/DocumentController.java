@@ -13,7 +13,9 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.HexFormat;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import com.suraksha.Setu.Service.AiService;
 import com.suraksha.Setu.Service.DocumentStorageService;
 import com.suraksha.Setu.dto.AiResponseDto;
@@ -110,5 +113,45 @@ public class DocumentController {
              e.printStackTrace();
              throw e;
         }
+    }
+
+    @PostMapping(value = "/{id}/analyze", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<DocumentForensicLog> analyzeStoredDocument(
+            @PathVariable("id") UUID id,
+            Authentication authentication) throws IOException {
+        User user = this.userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException("Authenticated user record is missing"));
+
+        DocumentForensicLog log = this.documentRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Document record not found"));
+
+        if (!log.getUser().getId().equals(user.getId())) {
+            throw new IllegalArgumentException("Unauthorized access to document");
+        }
+
+        byte[] fileBytes = this.documentStorageService.read(log.getStoredFilePath());
+
+        MultipartFile multipartFile = new MultipartFile() {
+            @Override public String getName() { return "file"; }
+            @Override public String getOriginalFilename() { return log.getDocumentName(); }
+            @Override public String getContentType() { return log.getContentType(); }
+            @Override public boolean isEmpty() { return fileBytes == null || fileBytes.length == 0; }
+            @Override public long getSize() { return fileBytes.length; }
+            @Override public byte[] getBytes() throws IOException { return fileBytes; }
+            @Override public java.io.InputStream getInputStream() throws IOException { return new java.io.ByteArrayInputStream(fileBytes); }
+            @Override public void transferTo(java.io.File dest) throws IOException, IllegalStateException { java.nio.file.Files.write(dest.toPath(), fileBytes); }
+        };
+
+        AiResponseDto aiResponse = this.aiService.analyzeDocument(multipartFile);
+        if (aiResponse != null) {
+            log.setRiskScore(aiResponse.getRiskScore());
+            log.setRiskDecision(aiResponse.getDecision());
+            if (log.getMetadataSnapshot() != null) {
+                log.getMetadataSnapshot().put("summary", aiResponse.getSummary());
+            }
+            log = this.documentRepository.save(log);
+        }
+
+        return ResponseEntity.ok(log);
     }
 }

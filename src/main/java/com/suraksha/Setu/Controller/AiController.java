@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/v1/ai")
+@RequestMapping({"/api/v1/ai", ""})
 public class AiController {
 
     private final AiService aiService;
@@ -22,7 +22,7 @@ public class AiController {
     }
 
     @PostMapping(
-            value = "/analyze",
+            value = {"/analyze", "/analyze-document"},
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public AiResponseDto analyzeDocument(

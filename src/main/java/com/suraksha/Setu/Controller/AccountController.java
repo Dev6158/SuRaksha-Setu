@@ -122,6 +122,9 @@ public class AccountController {
         payload.put("sha256Hash", log.getSha256Hash());
         payload.put("riskScore", log.getRiskScore());
         payload.put("riskDecision", log.getRiskDecision());
+        if (log.getMetadataSnapshot() != null && log.getMetadataSnapshot().containsKey("summary")) {
+            payload.put("summary", log.getMetadataSnapshot().get("summary"));
+        }
         payload.put("createdAt", log.getCreatedAt());
         return payload;
     }

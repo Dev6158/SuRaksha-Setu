@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt ./requirements.txt
 
-# opencv-python-headless replaces opencv-python (no display server in container)
 RUN pip install --no-cache-dir --prefix=/install \
         opencv-python-headless \
         -r requirements.txt
@@ -21,8 +20,6 @@ RUN pip install --no-cache-dir --prefix=/install \
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Stage 2 — final runtime image
-#   No model pre-bake step needed: forensic_engine.py is stateless — it
-#   performs ELA and FFT analysis on each uploaded image at request time.
 # ─────────────────────────────────────────────────────────────────────────────
 FROM python:3.11-slim AS runtime
 
@@ -39,21 +36,21 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 
-# Application source — forensic engine + shared utilities
-COPY forensic_engine.py utils.py ./
+# Copy all engine source files
+COPY forensic_engine.py behavioral_analytics_engine.py train_and_persist.py generate_training_data.py utils.py ./
+
+# Pre-train the behavioral machine learning model profile at build-time
+RUN mkdir -p models && python train_and_persist.py --output models/user_profile.joblib
+
+# Create start script to run both FastAPI servers in parallel inside one container
+RUN echo '#!/bin/bash\n\
+python -m uvicorn behavioral_analytics_engine:app --host 0.0.0.0 --port 8080 &\n\
+python -m uvicorn forensic_engine:app --host 0.0.0.0 --port 8000\n\
+' > start.sh && chmod +x start.sh
 
 RUN chown -R mluser:mluser /app
 USER mluser
 
-EXPOSE 8000
+EXPOSE 8000 8080
 
-# Healthcheck — matches GET /healthz in forensic_engine.py
-HEALTHCHECK --interval=20s --timeout=5s --start-period=10s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')" || exit 1
-
-CMD ["uvicorn", "forensic_engine:app", \
-     "--host", "0.0.0.0", \
-     "--port", "8000", \
-     "--workers", "4", \
-     "--log-level", "info", \
-     "--access-log"]
+CMD ["./start.sh"]

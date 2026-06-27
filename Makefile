@@ -20,3 +20,7 @@ ps:
 clean:
 	docker compose -f infra/docker-compose.yml down -v
 	docker system prune -f
+
+run-demo:
+	chmod +x run_demo.py
+	venv/bin/python3 run_demo.py

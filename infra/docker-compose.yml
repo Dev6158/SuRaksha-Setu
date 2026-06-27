@@ -1,0 +1,137 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: suraksha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:8-alpine
+    container_name: suraksha-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+# TODO:
+# Update backend and ml-service build contexts
+# after final repository structure is agreed by team.
+  backend:
+    container_name: suraksha-backend
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "${SPRING_PORT}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      behavioral:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      AI_SERVICE_URL: http://ml-service:8000
+      ML_FASTAPI_BASE_URL: http://behavioral:8080
+    networks:
+      - suraksha-network 
+    healthcheck:
+      test: ["CMD", "java", "-version"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  behavioral:
+    container_name: suraksha-behavioral
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: ml-service/Dockerfile.behavioral
+    ports:
+      - "8081:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  ml-service:
+    container_name: suraksha-ml
+    restart: unless-stopped
+    build:
+      context: ..
+      dockerfile: ml-service/Dockerfile.forensic
+    ports:
+      - "${FASTAPI_PORT}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - suraksha-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  dashboard:
+    container_name: suraksha-dashboard
+    restart: unless-stopped
+    build:
+      context: ../admin-dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "${NEXT_PORT}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - suraksha-network
+
+volumes:
+  postgres_data:
+
+networks:
+  suraksha-network:
+    driver: bridge

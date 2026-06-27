@@ -1,312 +1,259 @@
-# SuRaksha Setu
+<div align="center">
 
-## AI-Powered Banking Fraud Intelligence & Continuous Authentication Platform
+<img src="https://img.shields.io/badge/Canara%20Bank-SuRaksha%20Cyber%20Hackathon%202.0-blue?style=for-the-badge&logo=shield&logoColor=white" alt="Hackathon Badge"/>
 
-SuRaksha Setu is a next-generation cybersecurity platform designed to protect digital banking systems against both document fraud and account takeover attacks.
+# 🛡️ SuRaksha-Setu
 
-Unlike conventional fraud detection systems that focus on a single stage of the banking lifecycle, SuRaksha Setu provides end-to-end protection through:
+### *सुरक्षा-सेतु — Bridging the Gap Between Banking and Cyber Security*
 
-* Multimodal Document Forensics
-* Continuous Behavioral Authentication
-* Real-Time Risk Evaluation
-* Adaptive Security Responses
-* Explainable AI-Based Fraud Intelligence
-* Enterprise Security Monitoring Dashboards
+**A next-generation cybersecurity platform for real-time document fraud detection and agentic regulatory compliance in the Indian banking ecosystem.**
 
-The platform combines computer vision, machine learning, behavioral biometrics, digital forensics, and real-time threat analytics into a unified security ecosystem.
+[![Hackathon](https://img.shields.io/badge/Canara%20Bank-SuRaksha%202.0-0057A8?style=flat-square)](https://canarabank.hackerearth.com/)
+[![Platform](https://img.shields.io/badge/Platform-HackerEarth-blueviolet?style=flat-square)](https://www.hackerearth.com/)
+[![Status](https://img.shields.io/badge/Status-Prototype%20Phase-brightgreen?style=flat-square)]()
+[![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)](LICENSE)
 
----
-
-# Problem Statement
-
-Modern banking systems face two critical attack surfaces:
-
-## Fraudulent Onboarding
-
-Attackers frequently submit forged:
-
-* Salary Slips
-* Bank Statements
-* Identity Documents
-* Property Records
-* KYC Documents
-
-Traditional verification systems often fail to detect sophisticated manipulation techniques.
-
-## Session Hijacking & Account Takeover
-
-Even after successful authentication, attackers can:
-
-* Hijack active sessions
-* Use stolen credentials
-* Operate from compromised devices
-* Mimic legitimate user behavior
-
-Most banking systems authenticate users only during login and remain blind to malicious activity afterward.
+</div>
 
 ---
 
-# Our Solution
+## 📌 Table of Contents
 
-SuRaksha Setu implements a Zero-Trust Banking Security Architecture.
-
-## Onboarding Security Layer
-
-Uploaded documents undergo advanced forensic analysis using:
-
-* OCR-Based Text Extraction
-* Error Level Analysis (ELA)
-* Metadata Forensics
-* FFT/Moiré Pattern Detection
-* CNN-Based Tampering Detection
-* Vision-Language Models (VLMs)
-* Cross-Document Consistency Analysis
-
-## Runtime Security Layer
-
-After login, the platform continuously evaluates:
-
-* Typing Rhythm
-* Swipe Behavior
-* Touch Pressure
-* Device Motion Patterns
-* Accelerometer Data
-* Gyroscope Signatures
-* Geolocation Consistency
-* Navigation Behavior
-
-This enables passive continuous authentication without disrupting legitimate users.
+- [About the Hackathon](#-about-the-hackathon)
+- [Problem Statement](#-problem-statement)
+- [Our Solution](#-our-solution)
+- [Key Features](#-key-features)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Getting Started](#-getting-started)
+- [Project Structure](#-project-structure)
+- [Team](#-team)
 
 ---
 
-# Key Features
+## 🏦 About the Hackathon
 
-## Multimodal Forensic Intelligence
+**SuRaksha Cyber Hackathon 2.0** is a national-level campus hackathon organized by **Canara Bank**, one of India's leading public sector banks, hosted on HackerEarth. The hackathon challenges undergraduate teams to build innovative cybersecurity solutions for the fintech domain.
 
-Detects:
-
-* Photoshop Traces
-* Image Tampering
-* Synthetic Identities
-* Metadata Inconsistencies
-* Screen Recapture Attacks
-* Cross-Document Contradictions
-
-## Behavioral Authentication Engine
-
-Uses:
-
-* Isolation Forest
-* One-Class SVM
-* Statistical Baselines
-
-to identify abnormal user activity in real time.
-
-## Risk Evaluation Engine
-
-Combines:
-
-* Document Fraud Scores
-* Behavioral Anomaly Scores
-* Device Trust Metrics
-* Geolocation Anomalies
-* Transaction Risk Indicators
-
-into a unified dynamic trust score.
-
-## Adaptive Security Responses
-
-| Risk Score | Action                               |
-| ---------- | ------------------------------------ |
-| 0-30       | Trusted Session                      |
-| 31-60      | OTP Verification                     |
-| 61-80      | Biometric Challenge                  |
-| 81-100     | Session Freeze & Security Escalation |
-
-## Explainable AI
-
-Every security decision includes:
-
-* Risk Reasoning
-* Behavioral Deviations
-* Fraud Indicators
-* Security Recommendations
-
-making the platform suitable for enterprise banking and regulatory environments.
+| Detail | Info |
+|--------|------|
+| 🏆 Prize Pool | ₹11,00,000 (11 Lakhs) |
+| 🎯 Focus Area | Cybersecurity in Fintech & Digital Banking |
+| 👥 Team Size | 3–5 Members |
+| 🗓️ Prototype Phase | June 1 – June 30, 2026 |
+| 🌐 Platform | HackerEarth |
 
 ---
 
-# System Architecture
+## ❗ Problem Statement
 
-```text
-Flutter Mobile Client
-        │
-        ▼
-Spring Boot Orchestrator
-        │
- ┌──────┴──────┐
- ▼             ▼
-Redis      PostgreSQL
- │
- ▼
-FastAPI AI Services
- │
- ├── Document Forensics
- ├── Behavioral Analytics
- ├── Risk Evaluation
- └── Cross-Document Intelligence
-        │
-        ▼
-Next.js Security Dashboard
+> *In an era of rapid banking digitization, traditional security and manual compliance processes are proving insufficient to address the scale and sophistication of modern threats.*
+
+SuRaksha-Setu addresses **two critical problem areas** identified by Canara Bank:
+
+### 1. 🔍 Real-Time Anomaly Detection in Financial Documents
+Banks process thousands of documents daily — loan applications, land records, income certificates, and financial statements. Manual verification is slow, error-prone, and easily defeated by sophisticated forgeries. The need is for an **automated, real-time system** to detect tampering or forgery in these documents at scale.
+
+### 2. 🤖 Agentic Regulatory Intelligence & Compliance
+The Indian banking sector operates under a constantly evolving regulatory landscape (RBI circulars, SEBI guidelines, PMLA amendments, etc.). Tracking these changes and validating departmental compliance manually is a massive operational burden. The need is for an **AI agent** that autonomously monitors, interprets, and validates regulatory changes.
+
+---
+
+## 💡 Our Solution
+
+**SuRaksha-Setu** (Security Bridge) is a unified platform that combines:
+
+- A **Document Intelligence Engine** powered by computer vision and ML to detect forgery, tampering, and inconsistencies in financial documents in real time.
+- An **Agentic Compliance Copilot** that autonomously crawls regulatory sources, extracts actionable directives, and verifies departmental compliance status — all without human intervention.
+
+Together, these modules act as a *bridge* (Setu) between raw data and trustworthy, secure banking operations.
+
+---
+
+## ✨ Key Features
+
+### 📄 Document Fraud Detection
+- **Real-time tamper detection** — Identifies pixel-level manipulations, font inconsistencies, and metadata anomalies in uploaded documents
+- **Multi-document support** — Handles land records, income proofs, bank statements, and financial certificates
+- **Confidence scoring** — Each document receives an authenticity score with an explainable risk breakdown
+- **Alert & escalation pipeline** — Flags suspicious documents with automated escalation to verification officers
+
+### 🤖 Agentic Regulatory Compliance
+- **Autonomous regulatory monitoring** — Continuously tracks RBI, SEBI, MCA, and PMLA regulatory updates
+- **Semantic change parsing** — Uses NLP to extract actionable compliance tasks from dense regulatory text
+- **Departmental validation** — Checks if each bank department has completed the required compliance actions
+- **Audit trail generation** — Maintains a timestamped log of regulatory changes and compliance status
+
+### 🔐 Security & Privacy
+- All document analysis happens **on-premise** — sensitive data never leaves the bank's infrastructure
+- Role-based access control (RBAC) for compliance dashboards
+- End-to-end encryption for all document pipelines
+
+---
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        SuRaksha-Setu                        │
+│                                                             │
+│  ┌──────────────┐          ┌───────────────────────────┐   │
+│  │   Document   │          │   Regulatory Compliance   │   │
+│  │  Upload API  │          │        Agentic Engine     │   │
+│  └──────┬───────┘          └──────────────┬────────────┘   │
+│         │                                 │                 │
+│  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
+│  │  Preprocessing│          │  Regulatory Source Crawler│   │
+│  │  & OCR Layer │          │  (RBI / SEBI / MCA feeds) │   │
+│  └──────┬───────┘          └──────────────┬────────────┘   │
+│         │                                 │                 │
+│  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
+│  │  ML Anomaly  │          │   NLP Directive Extractor │   │
+│  │  Detection   │          │   & Action Item Generator │   │
+│  └──────┬───────┘          └──────────────┬────────────┘   │
+│         │                                 │                 │
+│  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
+│  │  Risk Score  │          │  Compliance Validator &   │   │
+│  │  & Alert     │          │  Audit Trail Logger       │   │
+│  └──────┬───────┘          └──────────────┬────────────┘   │
+│         └──────────────┬──────────────────┘                │
+│                        │                                    │
+│               ┌────────▼────────┐                          │
+│               │  Unified Dashboard (React Frontend)        │
+│               └─────────────────┘                          │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-# Technology Stack
+## 🛠️ Tech Stack
 
-## Frontend
-
-* Flutter
-* Next.js
-* TailwindCSS
-* Recharts
-
-## Backend
-
-* Spring Boot
-* Spring Security
-* JWT Authentication
-* REST APIs
-* WebSockets
-
-## Artificial Intelligence & Machine Learning
-
-* FastAPI
-* Scikit-Learn
-* OpenCV
-* EfficientNet
-* ResNet
-* Qwen2-VL
-* LLaVA
-* PaddleOCR
-
-## Database & Infrastructure
-
-* PostgreSQL
-* Redis
-* Docker
-* GitHub Actions
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React.js, Tailwind CSS |
+| **Backend** | Python (FastAPI / Flask) |
+| **Document OCR** | Tesseract OCR, OpenCV |
+| **ML / AI Models** | Scikit-learn, PyTorch / TensorFlow |
+| **NLP (Compliance)** | spaCy, HuggingFace Transformers |
+| **Agentic Framework** | LangChain / LlamaIndex |
+| **Database** | PostgreSQL, Redis (caching) |
+| **Storage** | MinIO (on-premise object storage) |
+| **Auth** | JWT + RBAC |
+| **DevOps** | Docker, Docker Compose |
 
 ---
 
-# Repository Structure
+## 🚀 Getting Started
 
-```text
-suraksha-setu-root/
-│
-├── mobile-client/
-├── orchestrator-backend/
-├── ai-ml-service/
-├── admin-dashboard/
-├── infra/
-├── integration-tests/
-└── .github/workflows/
+### Prerequisites
+
+- Python 3.10+
+- Node.js 18+
+- Docker & Docker Compose
+
+### Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Dev6158/SuRaksha-Setu.git
+cd SuRaksha-Setu
+
+# 2. Set up backend
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# 3. Set up frontend
+cd ../frontend
+npm install
+
+# 4. Configure environment
+cp .env.example .env
+# Edit .env with your database and API credentials
+
+# 5. Start all services with Docker
+cd ..
+docker-compose up --build
+```
+
+### Running Locally (without Docker)
+
+```bash
+# Start backend
+cd backend
+uvicorn main:app --reload --port 8000
+
+# Start frontend (new terminal)
+cd frontend
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`
+
+---
+
+## 📁 Project Structure
+
+```
+SuRaksha-Setu/
+├── backend/
+│   ├── api/                    # FastAPI route handlers
+│   ├── models/                 # ML model definitions & weights
+│   ├── services/
+│   │   ├── document_engine/    # OCR, tamper detection pipeline
+│   │   └── compliance_agent/   # Regulatory crawler & NLP agent
+│   ├── utils/                  # Helpers, preprocessing tools
+│   ├── requirements.txt
+│   └── main.py
+├── frontend/
+│   ├── src/
+│   │   ├── components/         # Reusable React components
+│   │   ├── pages/              # Dashboard, Upload, Compliance pages
+│   │   └── services/           # API integration layer
+│   └── package.json
+├── docker-compose.yml
+├── .env.example
+└── README.md
 ```
 
 ---
 
-# Demonstration Workflow
+## 👥 Team
 
-## Scenario 1: Forged Document Detection
-
-1. User uploads a salary slip.
-2. ELA highlights suspicious regions.
-3. Metadata analysis detects anomalies.
-4. Risk score increases.
-5. Explainable forensic report is generated.
-
-## Scenario 2: Session Hijack Detection
-
-1. Legitimate user logs in.
-2. Behavioral baseline is established.
-3. Attacker simulation is performed.
-4. Swipe rhythm and motion patterns deviate.
-5. Trust score decreases.
-6. OTP or biometric challenge is triggered.
-7. Session is frozen if risk continues to escalate.
+| Name | Role |
+|------|------|
+| Procheta | UI/UX & Frontend Development |
+| Oishika | Backend Engineering |
+| Amrita | DevOps & Integration |
+| Shreya | AI/ML Engineering |
+| Debansh | Team Lead · Architecture Design · AI/ML Engineering |
 
 ---
 
-# Why SuRaksha Setu?
+## 📊 Evaluation Alignment
 
-Most cybersecurity solutions focus on a single attack surface.
-
-SuRaksha Setu unifies:
-
-* Document Fraud Detection
-* Behavioral Biometrics
-* Continuous Authentication
-* Explainable AI
-* Adaptive Security Controls
-* Real-Time Risk Intelligence
-* Enterprise Security Monitoring
-
-into one integrated banking cybersecurity ecosystem.
+| Criterion | Our Approach |
+|-----------|-------------|
+| **Relevance to Theme** | Directly addresses both problem statements issued by Canara Bank |
+| **Innovation & Uniqueness** | Combines agentic AI with real-time document forensics in a single platform |
+| **Feasibility** | Modular architecture — each component can be deployed independently |
+| **Impact** | Targets fraud prevention and compliance automation for a bank serving crores of customers |
+| **Technical Execution** | ML + NLP + OCR pipeline with a production-ready REST API and dashboard |
+| **Real-World Scalability** | Containerized deployment, horizontally scalable, on-premise data residency |
 
 ---
 
-# Competitive Advantage
+## 📄 License
 
-| Traditional Fraud Systems        | SuRaksha Setu                 |
-| -------------------------------- | ----------------------------- |
-| Login-only authentication        | Continuous authentication     |
-| Rule-based detection             | AI-powered adaptive detection |
-| Single attack surface protection | End-to-end protection         |
-| Black-box alerts                 | Explainable AI decisions      |
-| Static security controls         | Dynamic risk-based responses  |
-| Reactive monitoring              | Proactive threat intelligence |
+This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-# Future Roadmap
+<div align="center">
 
-* Federated Learning for privacy-preserving model training
-* Real-Time Threat Intelligence Integration
-* Advanced Insider Threat Detection
-* Multi-Bank Risk Intelligence Sharing
-* Graph-Based Fraud Relationship Analysis
-* GenAI-Powered Fraud Investigation Assistant
-* Regulatory Compliance Reporting Automation
+Built with ❤️ for **Canara Bank SuRaksha Cyber Hackathon 2.0**
 
----
+*सुरक्षित भारत, डिजिटल भारत — Secure India, Digital India*
 
-# Team
-
-## AI & Machine Learning
-
-- Debansh Hota
-- Shreya Pankaj
-
-## Backend & Security
-
-- Debansh Hota
-- Oishika Dey
-- Amrita Neogi
-
-## Frontend, Dashboard & DevOps
-
-- Procheta Ray
-- Amrita Neogi
-
----
-
-# Vision
-
-To build an intelligent, adaptive, and explainable banking security platform capable of protecting users throughout the entire banking lifecycle, from onboarding verification to real-time transaction monitoring.
-
----
-
-# License
-
-Developed for cybersecurity innovation, research, and hackathon deployment purposes.
-
+</div>

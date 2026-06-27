@@ -1,0 +1,83 @@
+name: SuRaksha CI
+
+on:
+push:
+branches:
+- main
+- integration-test
+- devops-amrita
+
+pull_request:
+branches:
+- main
+
+jobs:
+build-backend:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Setup Java
+    uses: actions/setup-java@v4
+    with:
+      distribution: temurin
+      java-version: 21
+
+  - name: Build Backend
+    run: mvn clean package -DskipTests
+```
+
+build-python:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.11"
+
+  - name: Install Python Dependencies
+    run: |
+      pip install -r requirements.txt
+```
+
+build-dashboard:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
+
+  - name: Install Dashboard Dependencies
+    working-directory: admin-dashboard
+    run: npm install
+
+  - name: Build Dashboard
+    working-directory: admin-dashboard
+    run: npm run build
+```
+
+validate-docker:
+runs-on: ubuntu-latest
+
+```
+steps:
+  - name: Checkout Repository
+    uses: actions/checkout@v4
+
+  - name: Validate Docker Compose
+    run: docker compose -f infra/docker-compose.yml config
+```

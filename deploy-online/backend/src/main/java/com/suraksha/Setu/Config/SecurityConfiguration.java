@@ -95,7 +95,7 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
-        corsConfiguration.setAllowedOriginPatterns(List.of("https://*.example.com", "http://localhost:*"));
+        corsConfiguration.setAllowedOriginPatterns(List.of("https://*.vercel.app", "https://*.railway.app", "https://*.example.com", "http://localhost:*", "*"));
         corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         corsConfiguration.setAllowedHeaders(List.of(
                 HttpHeaders.AUTHORIZATION,

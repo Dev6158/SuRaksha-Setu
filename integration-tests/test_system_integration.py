@@ -35,7 +35,7 @@ def test_document_types_endpoint():
 def test_aiml_service_availability():
     try:
         response = requests.get(
-            f"{AI_URL}/health"
+            f"{AI_URL}/healthz"
         )
         assert response.status_code == 200
     except:

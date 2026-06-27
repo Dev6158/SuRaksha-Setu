@@ -57,12 +57,31 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
         String redisKey = "telemetry:matrix:" + accountId + ":" + Instant.now().toEpochMilli();
         this.redisTemplate.opsForValue().set(redisKey, trackingMatrix, Duration.ofMinutes(10));
 
-        String evaluationPayload = "{"
-                + "\"accountId\":\"" + escapeJson(accountId) + "\","
-                + "\"sessionId\":\"" + escapeJson(webSocketSession.getId()) + "\","
-                + "\"trackingMatrix\":" + trackingMatrix + ","
-                + "\"receivedAt\":\"" + Instant.now() + "\""
-                + "}";
+        String swipe = extractJsonField(trackingMatrix, "swipe");
+        String tap = extractJsonField(trackingMatrix, "tap");
+        String gyroscope = extractJsonField(trackingMatrix, "gyroscope");
+        String interactionPattern = extractJsonField(trackingMatrix, "interaction_pattern");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"user_id\":\"").append(escapeJson(accountId)).append("\",");
+        sb.append("\"event_id\":\"").append(escapeJson(webSocketSession.getId())).append("\",");
+        sb.append("\"client_timestamp\":\"").append(Instant.now().toString()).append("\"");
+        
+        if (swipe != null && !swipe.isBlank() && !"null".equals(swipe)) {
+            sb.append(",\"swipe\":").append(swipe);
+        }
+        if (tap != null && !tap.isBlank() && !"null".equals(tap)) {
+            sb.append(",\"tap\":").append(tap);
+        }
+        if (gyroscope != null && !gyroscope.isBlank() && !"null".equals(gyroscope)) {
+            sb.append(",\"gyroscope\":").append(gyroscope);
+        }
+        if (interactionPattern != null && !interactionPattern.isBlank() && !"null".equals(interactionPattern)) {
+            sb.append(",\"interaction_pattern\":").append(interactionPattern);
+        }
+        sb.append("}");
+        String evaluationPayload = sb.toString();
 
         CompletableFuture.runAsync(() -> evaluateRiskAndReturnFrame(webSocketSession, evaluationPayload));
     }
@@ -215,6 +234,9 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private String resolveAccountId(WebSocketSession webSocketSession) {
         Object principal = webSocketSession.getPrincipal();
+        if (principal instanceof java.security.Principal) {
+            return ((java.security.Principal) principal).getName();
+        }
         if (principal != null && principal.toString() != null) {
             return principal.toString();
         }

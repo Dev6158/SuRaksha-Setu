@@ -57,6 +57,10 @@ public class DocumentController {
     public ResponseEntity<DocumentForensicLog> uploadDocument(
             @ModelAttribute DocumentUploadDto documentUploadDto,
             Authentication authentication) throws IOException, NoSuchAlgorithmException {
+        if (authentication == null || !authentication.isAuthenticated() || authentication.getName() == null) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).build();
+        }
+
         User user = this.userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Authenticated user record is missing"));
 
@@ -72,13 +76,12 @@ public class DocumentController {
 
         String decision =
                 aiResponse.getDecision();
-        Map<String, Object> metadata = Map.of(
-                "originalFilename", documentUploadDto.getFile().getOriginalFilename(),
-                "declaredPurpose", documentUploadDto.getPurpose(),
-                "byteSize", documentUploadDto.getFile().getSize(),
-                "uploadedAt", OffsetDateTime.now().toString(),
-                "summary", aiResponse.getSummary()
-        );
+        Map<String, Object> metadata = new java.util.HashMap<>();
+        metadata.put("originalFilename", documentUploadDto.getFile().getOriginalFilename() != null ? documentUploadDto.getFile().getOriginalFilename() : "unknown");
+        metadata.put("declaredPurpose", documentUploadDto.getPurpose() != null ? documentUploadDto.getPurpose() : "not-specified");
+        metadata.put("byteSize", documentUploadDto.getFile().getSize());
+        metadata.put("uploadedAt", OffsetDateTime.now().toString());
+        metadata.put("summary", aiResponse.getSummary() != null ? aiResponse.getSummary() : "");
 
         DocumentForensicLog documentForensicLog = new DocumentForensicLog();
         documentForensicLog.setUser(user);

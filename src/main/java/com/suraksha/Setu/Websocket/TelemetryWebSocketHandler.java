@@ -214,9 +214,9 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
     }
 
     private String resolveAccountId(WebSocketSession webSocketSession) {
-        Object principal = webSocketSession.getPrincipal();
-        if (principal != null && principal.toString() != null) {
-            return principal.toString();
+        java.security.Principal principal = webSocketSession.getPrincipal();
+        if (principal != null && principal.getName() != null) {
+            return principal.getName();
         }
 
         String userId = webSocketSession.getUri() == null ? null : webSocketSession.getUri().getQuery();

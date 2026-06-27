@@ -63,7 +63,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/actuator/health", "/actuator/info").permitAll()
                                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/v1/analytics/**").hasRole("ADMIN")
-                                .requestMatchers("/api/v1/forensics/documents/**").permitAll()
+                                .requestMatchers("/api/v1/forensics/documents/**").authenticated()
                                 .requestMatchers("/api/v1/documents/**").authenticated()
                                 .requestMatchers("/api/v1/account/**").authenticated()
                                 .requestMatchers("/api/v1/transactions").authenticated()

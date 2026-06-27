@@ -16,7 +16,7 @@ public class DocumentStorageService {
 
     private final Path storageRoot;
 
-    public DocumentStorageService(@Value("${document.storage.root:/app/uploads}") String storageRoot) throws IOException {
+    public DocumentStorageService(@Value("${document.storage.root:/tmp/uploads}") String storageRoot) throws IOException {
         this.storageRoot = Paths.get(storageRoot).toAbsolutePath().normalize();
         Files.createDirectories(this.storageRoot);
     }

@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.suraksha.Setu.Service.AiService;
+import com.suraksha.Setu.Service.DocumentStorageService;
 import com.suraksha.Setu.dto.AiResponseDto;
 
 @RestController
@@ -31,15 +32,17 @@ public class DocumentController {
     private final DocumentRepository documentRepository;
     private final UserRepository userRepository;
     private final AiService aiService;
+    private final DocumentStorageService documentStorageService;
     public DocumentController(
-        DocumentRepository documentRepository,
-        UserRepository userRepository,
-        AiService aiService) {
-
-      this.documentRepository = documentRepository;
-      this.userRepository = userRepository;
-      this.aiService = aiService;
-}
+    DocumentRepository documentRepository,
+    UserRepository userRepository,
+    AiService aiService,
+    DocumentStorageService documentStorageService) {
+    this.documentRepository = documentRepository;
+    this.userRepository = userRepository;
+    this.aiService = aiService;
+    this.documentStorageService = documentStorageService;
+    }
 
     @GetMapping(value = "/types", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<Map<String, Object>>> getDocumentTypes() {
@@ -59,14 +62,21 @@ public class DocumentController {
             Authentication authentication) throws IOException, NoSuchAlgorithmException {
         User user = this.userRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Authenticated user record is missing"));
-
+        
+        DocumentStorageService.StoredDocument storedDocument =
+        documentStorageService.store(
+                documentUploadDto.getFile(),
+                user.getId()
+        );
         byte[] bytes = documentUploadDto.getFile().getBytes();
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         String sha256 = HexFormat.of().formatHex(messageDigest.digest(bytes));
 
         AiResponseDto aiResponse =
                 aiService.analyzeDocument(documentUploadDto.getFile());
-
+        if (aiResponse == null) {
+            throw new RuntimeException("AI service returned null response");
+        }
         BigDecimal defaultRiskScore =
                 aiResponse.getRiskScore();
 
@@ -88,12 +98,17 @@ public class DocumentController {
         documentForensicLog.setRiskScore(defaultRiskScore);
         documentForensicLog.setRiskDecision(decision);
         documentForensicLog.setMetadataSnapshot(metadata);
+        documentForensicLog.setStoredFilePath(
+                storedDocument.getPath());
+        documentForensicLog.setFileSizeBytes(
+                storedDocument.getSizeBytes());
 
         try {
           DocumentForensicLog savedLog = this.documentRepository.save(documentForensicLog);
           return ResponseEntity.ok(savedLog);
         } catch (Exception e) {
-          throw e;
+             e.printStackTrace();
+             throw e;
         }
     }
 }

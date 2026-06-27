@@ -126,13 +126,13 @@ class _UploadWizardViewState extends State<UploadWizardView> {
 
   IconData _iconForDocType(String id) {
     switch (id) {
-      case 'aadhaar':
+      case 'AADHAAR':
         return Icons.credit_card_outlined;
-      case 'pan':
+      case 'PAN':
         return Icons.receipt_outlined;
       case 'salary_slip':
         return Icons.request_page_outlined;
-      case 'bank_statement':
+      case 'BANK_STATEMENT':
         return Icons.account_balance_outlined;
       case 'passport':
         return Icons.menu_book_outlined;

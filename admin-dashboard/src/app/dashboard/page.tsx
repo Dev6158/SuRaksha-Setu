@@ -182,7 +182,7 @@ export default function DashboardPage() {
             </p>
           </div>
           <button
-            onClick={fetchData}
+            onClick={() => fetchData()}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors duration-150"
           >
             🔄 Refresh Data

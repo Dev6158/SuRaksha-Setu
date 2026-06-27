@@ -46,12 +46,13 @@ public class AiService {
 
         try {
             return restTemplate.postForObject(
-                   aiServiceUrl + "/analyze-document",
+                   aiServiceUrl + "/api/v1/forensics/analyze",
                    requestEntity,
                    AiResponseDto.class
             );
         } catch (Exception e) {
 
+            e.printStackTrace();
             AiResponseDto response = new AiResponseDto();
             response.setRiskScore(BigDecimal.ZERO);
             response.setDecision("PENDING_REVIEW");

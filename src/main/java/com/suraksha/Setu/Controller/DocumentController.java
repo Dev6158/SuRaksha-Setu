@@ -131,15 +131,18 @@ public class DocumentController {
 
         byte[] fileBytes = this.documentStorageService.read(log.getStoredFilePath());
 
+        final DocumentForensicLog finalLog = log;
+        final byte[] finalFileBytes = fileBytes;
+
         MultipartFile multipartFile = new MultipartFile() {
             @Override public String getName() { return "file"; }
-            @Override public String getOriginalFilename() { return log.getDocumentName(); }
-            @Override public String getContentType() { return log.getContentType(); }
-            @Override public boolean isEmpty() { return fileBytes == null || fileBytes.length == 0; }
-            @Override public long getSize() { return fileBytes.length; }
-            @Override public byte[] getBytes() throws IOException { return fileBytes; }
-            @Override public java.io.InputStream getInputStream() throws IOException { return new java.io.ByteArrayInputStream(fileBytes); }
-            @Override public void transferTo(java.io.File dest) throws IOException, IllegalStateException { java.nio.file.Files.write(dest.toPath(), fileBytes); }
+            @Override public String getOriginalFilename() { return finalLog.getDocumentName(); }
+            @Override public String getContentType() { return finalLog.getContentType(); }
+            @Override public boolean isEmpty() { return finalFileBytes == null || finalFileBytes.length == 0; }
+            @Override public long getSize() { return finalFileBytes.length; }
+            @Override public byte[] getBytes() throws IOException { return finalFileBytes; }
+            @Override public java.io.InputStream getInputStream() throws IOException { return new java.io.ByteArrayInputStream(finalFileBytes); }
+            @Override public void transferTo(java.io.File dest) throws IOException, IllegalStateException { java.nio.file.Files.write(dest.toPath(), finalFileBytes); }
         };
 
         AiResponseDto aiResponse = this.aiService.analyzeDocument(multipartFile);

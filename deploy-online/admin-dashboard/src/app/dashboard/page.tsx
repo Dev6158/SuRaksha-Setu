@@ -48,7 +48,11 @@ export default function DashboardPage() {
   // Authentication State
   const [authToken, setAuthToken] = useState("");
 
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://suraksha-setu-production.up.railway.app";
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost"
+      ? "http://localhost:8080"
+      : "https://suraksha-setu-production.up.railway.app");
 
   const loginAndGetToken = async () => {
     try {

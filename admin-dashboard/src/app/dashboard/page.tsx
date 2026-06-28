@@ -43,12 +43,14 @@ export default function DashboardPage() {
 
   // WebSocket connection handler
   useEffect(() => {
+    if (!authToken) return;
+
     let ws: WebSocket | null = null;
     let reconnectTimeout: any = null;
 
     const connectWS = () => {
       setWsStatus("connecting");
-      const wsUrl = `${API_BASE_URL.replace(/^http/, "ws")}/ws/telemetry?accountId=demo_user`;
+      const wsUrl = `${API_BASE_URL.replace(/^http/, "ws")}/ws/telemetry?accountId=demo_user&token=${authToken}`;
       
       try {
         ws = new WebSocket(wsUrl);
@@ -91,7 +93,7 @@ export default function DashboardPage() {
       }
       if (reconnectTimeout) clearTimeout(reconnectTimeout);
     };
-  }, [API_BASE_URL]);
+  }, [API_BASE_URL, authToken]);
 
   // Telemetry Simulation loop
   useEffect(() => {

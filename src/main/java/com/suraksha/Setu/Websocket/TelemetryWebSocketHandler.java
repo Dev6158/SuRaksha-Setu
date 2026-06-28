@@ -16,6 +16,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.suraksha.Setu.Security.JwtTokenService;
+
 @Component
 public class TelemetryWebSocketHandler extends TextWebSocketHandler {
 
@@ -24,24 +26,53 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
     private final String riskEvaluationPath;
+    private final JwtTokenService jwtTokenService;
 
     public TelemetryWebSocketHandler(
             RedisTemplate<String, String> redisTemplate,
             WebClient.Builder webClientBuilder,
             @Value("${ml.fastapi.base-url:http://localhost:8000}") String fastApiBaseUrl,
-            @Value("${ml.fastapi.risk-path:/score}") String riskEvaluationPath) {
+            @Value("${ml.fastapi.risk-path:/score}") String riskEvaluationPath,
+            JwtTokenService jwtTokenService) {
         this.activeSessions = new ConcurrentHashMap<>();
         this.sessionUsers = new ConcurrentHashMap<>();
         this.redisTemplate = redisTemplate;
         this.webClient = webClientBuilder.baseUrl(fastApiBaseUrl).build();
         this.riskEvaluationPath = riskEvaluationPath;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
+        String token = getQueryParam(webSocketSession.getUri(), "token");
+        if (token == null || token.isBlank()) {
+            webSocketSession.close(CloseStatus.POLICY_VIOLATION);
+            return;
+        }
+
+        try {
+            this.jwtTokenService.decodeAndValidateClaims(token);
+        } catch (Exception e) {
+            webSocketSession.close(CloseStatus.POLICY_VIOLATION);
+            return;
+        }
+
         String accountId = resolveAccountId(webSocketSession);
         this.activeSessions.put(webSocketSession.getId(), webSocketSession);
         this.sessionUsers.put(webSocketSession.getId(), accountId);
+    }
+
+    private String getQueryParam(java.net.URI uri, String paramName) {
+        if (uri == null || uri.getQuery() == null) {
+            return null;
+        }
+        for (String param : uri.getQuery().split("&")) {
+            String[] entry = param.split("=");
+            if (entry.length > 1 && paramName.equals(entry[0])) {
+                return entry[1];
+            }
+        }
+        return null;
     }
 
     @Override

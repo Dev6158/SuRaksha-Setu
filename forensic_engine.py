@@ -917,7 +917,7 @@ def detect_visual_qr_presence(image_bgr: np.ndarray) -> bool:
                 if 0.6 < ratio < 1.4 and area > 60:
                     finder_patterns += 1
                     
-        return finder_patterns >= 1
+        return finder_patterns >= 3
     except Exception as e:
         log.debug("Visual QR presence detection error: %s", e)
         return False
@@ -1266,8 +1266,7 @@ async def analyze_document(
         # Check visual QR code presence
         qr_visually_present = detect_visual_qr_presence(image_bgr)
         if qr_visually_present and not qr_detected:
-            overall_score = max(overall_score, 0.75)
-            fraud_indicators.append("Visually detected QR code could not be decoded (possible synthetic/AI-generated pattern)")
+            fraud_indicators.append("Visually detected QR code could not be decoded by local parser")
 
         if file.filename and check_suspicious_filename(file.filename):
             overall_score = max(overall_score, 0.90)

@@ -210,8 +210,8 @@ export default function DashboardPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          username: "demo_user",
-          password: "password123",
+          username: process.env.NEXT_PUBLIC_DEMO_USER || "demo_user",
+          password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "password123",
         }),
       });
       if (response.ok) {

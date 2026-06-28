@@ -64,6 +64,8 @@ services:
       REDIS_PORT: 6379
       AI_SERVICE_URL: http://ml-service:8000
       ML_FASTAPI_BASE_URL: http://behavioral:8080
+      DEMO_USER_USERNAME: ${DEMO_USER_USERNAME}
+      DEMO_USER_PASSWORD: ${DEMO_USER_PASSWORD}
     networks:
       - suraksha-network 
     healthcheck:

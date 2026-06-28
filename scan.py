@@ -37,7 +37,10 @@ def main():
     print("=============================================================")
     
     # 2. Login to local backend
-    user_credentials = {"username": "demo_user", "password": "password123"}
+    import os
+    username = os.getenv("DEMO_USER_USERNAME", "demo_user")
+    password = os.getenv("DEMO_USER_PASSWORD", "password123")
+    user_credentials = {"username": username, "password": password}
     token = None
     
     print("🔑 Authenticating with local backend...")

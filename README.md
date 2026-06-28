@@ -2,11 +2,10 @@
 
 <img src="https://img.shields.io/badge/Canara%20Bank-SuRaksha%20Cyber%20Hackathon%202.0-blue?style=for-the-badge&logo=shield&logoColor=white" alt="Hackathon Badge"/>
 
-# 🛡️ SuRaksha-Setu
+# 🛡️ SuRaksha-Setu (सुरक्षा-सेतु)
+### *Bridging the Gap Between Banking and Cyber Security*
 
-### *सुरक्षा-सेतु — Bridging the Gap Between Banking and Cyber Security*
-
-**A next-generation cybersecurity platform for real-time document fraud detection and agentic regulatory compliance in the Indian banking ecosystem.**
+**A next-generation, on-premise cybersecurity platform merging continuous behavioral telemetry on client devices with instant, zero-trust document forensics for bank verification officers.**
 
 [![Hackathon](https://img.shields.io/badge/Canara%20Bank-SuRaksha%202.0-0057A8?style=flat-square)](https://canarabank.hackerearth.com/)
 [![Platform](https://img.shields.io/badge/Platform-HackerEarth-blueviolet?style=flat-square)](https://www.hackerearth.com/)
@@ -28,6 +27,7 @@
 - [Getting Started](#-getting-started)
 - [Project Structure](#-project-structure)
 - [Team](#-team)
+- [Evaluation Alignment](#-evaluation-alignment)
 
 ---
 
@@ -47,15 +47,13 @@
 
 ## ❗ Problem Statement
 
-> *In an era of rapid banking digitization, traditional security and manual compliance processes are proving insufficient to address the scale and sophistication of modern threats.*
-
 SuRaksha-Setu addresses **two critical problem areas** identified by Canara Bank:
 
 ### 1. 🔍 Real-Time Anomaly Detection in Financial Documents
 Banks process thousands of documents daily — loan applications, land records, income certificates, and financial statements. Manual verification is slow, error-prone, and easily defeated by sophisticated forgeries. The need is for an **automated, real-time system** to detect tampering or forgery in these documents at scale.
 
-### 2. 🤖 Agentic Regulatory Intelligence & Compliance
-The Indian banking sector operates under a constantly evolving regulatory landscape (RBI circulars, SEBI guidelines, PMLA amendments, etc.). Tracking these changes and validating departmental compliance manually is a massive operational burden. The need is for an **AI agent** that autonomously monitors, interprets, and validates regulatory changes.
+### 🤳 2. Physical Session Hijacking (Snatching) & Behavioral Verification
+Once a user unlocks their mobile banking app, the session remains active. If the phone is physically snatched, an attacker gains immediate access. The system must passively track interaction telemetry (typing rhythms, swipe curvature, hand tremors) to lock the device or request step-up verification if user behavior changes.
 
 ---
 
@@ -63,31 +61,30 @@ The Indian banking sector operates under a constantly evolving regulatory landsc
 
 **SuRaksha-Setu** (Security Bridge) is a unified platform that combines:
 
-- A **Document Intelligence Engine** powered by computer vision and ML to detect forgery, tampering, and inconsistencies in financial documents in real time.
-- An **Agentic Compliance Copilot** that autonomously crawls regulatory sources, extracts actionable directives, and verifies departmental compliance status — all without human intervention.
-
-Together, these modules act as a *bridge* (Setu) between raw data and trustworthy, secure banking operations.
+* **Customer/Client App (Flutter):** Captures touch pressure, keystroke rhythms, and micro-tremors from the gyroscope to run continuous, on-device behavioral authentication.
+* **Document Intelligence Engine (FastAPI):** Powered by computer vision and ML to detect ELA compression mismatches, FFT moiré patterns, and metadata anomalies in uploaded documents.
+* **Incident Command Dashboard (Next.js):** Provides bank officers with a premium, real-time dark glassmorphic overview of threat alerts, risk distributions, and verification logs.
 
 ---
 
 ## ✨ Key Features
 
-### 📄 Document Fraud Detection
-- **Real-time tamper detection** — Identifies pixel-level manipulations, font inconsistencies, and metadata anomalies in uploaded documents
-- **Multi-document support** — Handles land records, income proofs, bank statements, and financial certificates
-- **Confidence scoring** — Each document receives an authenticity score with an explainable risk breakdown
-- **Alert & escalation pipeline** — Flags suspicious documents with automated escalation to verification officers
+### 🤳 1. Continuous Behavioral Biometrics (Client App)
+* **Touch Dynamics:** Analyzes swipe velocity ($x, y$), touch dwell time (milliseconds), contact area ($mm^2$), and unique **swipe typing curvature**.
+* **Micro-Tremor Gyroscope Tracking:** Captures the unique physical wobble and tilt of the user's hands while typing.
+* **On-Device ML:** Trains a blended **Isolation Forest** (14 features) and **One-Class SVM** (7 features) locally in the background.
+* **Adaptive Lockout:** Instantly locks the app or triggers step-up verification if telemetry patterns deviate.
 
-### 🤖 Agentic Regulatory Compliance
-- **Autonomous regulatory monitoring** — Continuously tracks RBI, SEBI, MCA, and PMLA regulatory updates
-- **Semantic change parsing** — Uses NLP to extract actionable compliance tasks from dense regulatory text
-- **Departmental validation** — Checks if each bank department has completed the required compliance actions
-- **Audit trail generation** — Maintains a timestamped log of regulatory changes and compliance status
+### 📄 2. Zero-Trust Document Forensics (ML Engine)
+* **Error Level Analysis (ELA):** Detects digital copy-paste edits by highlighting pixel-level JPEG compression mismatches.
+* **FFT Moiré Analysis:** Ensures the document is a native copy and not a photo taken of a computer screen.
+* **Smart Metadata Classification:** 
+  * *Consumer Tools (e.g. `ILovePDF`):* Marked as **Authentic** (risk score $\le 35\%$) with minor warnings (handles cases where real users simply compress files).
+  * *Programmatic Generators (e.g. `ConvertAPI`):* Automatically flagged as **Fraudulent** (risk score $\ge 75\%$) to block template fabrications.
 
-### 🔐 Security & Privacy
-- All document analysis happens **on-premise** — sensitive data never leaves the bank's infrastructure
-- Role-based access control (RBAC) for compliance dashboards
-- End-to-end encryption for all document pipelines
+### 📊 3. Apple-Style Security Command Dashboard (Admin Web)
+* **Glassmorphic UI:** Fully customized dark-mode dashboard with translucent acrylic panels for high-contrast viewing.
+* **Responsive Visualizations:** Custom **Recharts Area charts** tracking hourly security incidents and glowing risk distribution progress bars.
 
 ---
 
@@ -98,28 +95,28 @@ Together, these modules act as a *bridge* (Setu) between raw data and trustworth
 │                        SuRaksha-Setu                        │
 │                                                             │
 │  ┌──────────────┐          ┌───────────────────────────┐   │
-│  │   Document   │          │   Regulatory Compliance   │   │
-│  │  Upload API  │          │        Agentic Engine     │   │
+│  │   Document   │          │   Behavioral Telemetry    │   │
+│  │  Upload API  │          │   (Swipe, Tap, Gyroscope) │   │
 │  └──────┬───────┘          └──────────────┬────────────┘   │
 │         │                                 │                 │
 │  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
-│  │  Preprocessing│          │  Regulatory Source Crawler│   │
-│  │  & OCR Layer │          │  (RBI / SEBI / MCA feeds) │   │
+│  │  Preprocessing│          │  Isolation Forest &      │   │
+│  │  & ELA/FFT   │          │  One-Class SVM Models     │   │
 │  └──────┬───────┘          └──────────────┬────────────┘   │
 │         │                                 │                 │
 │  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
-│  │  ML Anomaly  │          │   NLP Directive Extractor │   │
-│  │  Detection   │          │   & Action Item Generator │   │
+│  │  ML Anomaly  │          │   Continuous Biometric    │   │
+│  │  Detection   │          │   Blended Scoring Engine  │   │
 │  └──────┬───────┘          └──────────────┬────────────┘   │
 │         │                                 │                 │
 │  ┌──────▼───────┐          ┌──────────────▼────────────┐   │
-│  │  Risk Score  │          │  Compliance Validator &   │   │
-│  │  & Alert     │          │  Audit Trail Logger       │   │
+│  │  Risk Score  │          │  Adaptive Lockout &       │   │
+│  │  & Alert     │          │  Step-up Verification     │   │
 │  └──────┬───────┘          └──────────────┬────────────┘   │
 │         └──────────────┬──────────────────┘                │
 │                        │                                    │
 │               ┌────────▼────────┐                          │
-│               │  Unified Dashboard (React Frontend)        │
+│               │  Unified Dashboard (Next.js Frontend)      │
 │               └─────────────────┘                          │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -130,66 +127,59 @@ Together, these modules act as a *bridge* (Setu) between raw data and trustworth
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | React.js, Tailwind CSS |
-| **Backend** | Python (FastAPI / Flask) |
-| **Document OCR** | Tesseract OCR, OpenCV |
-| **ML / AI Models** | Scikit-learn, PyTorch / TensorFlow |
-| **NLP (Compliance)** | spaCy, HuggingFace Transformers |
-| **Agentic Framework** | LangChain / LlamaIndex |
-| **Database** | PostgreSQL, Redis (caching) |
-| **Storage** | MinIO (on-premise object storage) |
-| **Auth** | JWT + RBAC |
+| **Mobile/Web Client** | Flutter, Dart |
+| **Admin Dashboard** | Next.js, React, Tailwind CSS, Recharts |
+| **Backend API** | Spring Boot, Java 21, Spring Security, Hibernate |
+| **Forensic ML Engines** | Python 3.11, FastAPI, OpenCV, NumPy, Scikit-Learn |
+| **Database** | PostgreSQL 17, Redis 8 (Alpine) |
 | **DevOps** | Docker, Docker Compose |
 
 ---
 
 ## 🚀 Getting Started
 
-### Prerequisites
+All services run **100% locally** with zero external API dependencies.
 
-- Python 3.10+
-- Node.js 18+
-- Docker & Docker Compose
-
-### Installation
-
+### Step 1: Start the Local Backend & ML Stack
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Dev6158/SuRaksha-Setu.git
-cd SuRaksha-Setu
+# Navigate to the infra directory
+cd infra
 
-# 2. Set up backend
-cd backend
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+# Initialize environment variables from example template
+cp .env.example .env
 
-# 3. Set up frontend
-cd ../frontend
+# Boot the local container stack
+docker compose up -d
+```
+
+### Step 2: Start the Next.js Admin Dashboard
+```bash
+# Navigate to the dashboard directory
+cd ../admin-dashboard
+
+# Install packages
 npm install
 
-# 4. Configure environment
-cp .env.example .env
-# Edit .env with your database and API credentials
-
-# 5. Start all services with Docker
-cd ..
-docker-compose up --build
-```
-
-### Running Locally (without Docker)
-
-```bash
-# Start backend
-cd backend
-uvicorn main:app --reload --port 8000
-
-# Start frontend (new terminal)
-cd frontend
+# Start the dev server
 npm run dev
 ```
+Open **[http://localhost:3000/dashboard](http://localhost:3000/dashboard)** in your browser. (Or **[http://localhost:3001/dashboard](http://localhost:3001/dashboard)**).
 
-The app will be available at `http://localhost:3000`
+### Step 3: Run the Flutter Client App (Web)
+```bash
+# Navigate back to the project root
+cd /home/debanshhota/SuRaksha-Setu
+
+# Launch the Flutter app in Chrome
+flutter run -d chrome
+```
+
+### 💻 Developer CLI Tool
+If you want to run quick document evaluations directly from your command line:
+```bash
+./scan.py Aadhar_02.pdf
+./scan.py Aadhar_01.pdf
+```
 
 ---
 
@@ -197,23 +187,14 @@ The app will be available at `http://localhost:3000`
 
 ```
 SuRaksha-Setu/
-├── backend/
-│   ├── api/                    # FastAPI route handlers
-│   ├── models/                 # ML model definitions & weights
-│   ├── services/
-│   │   ├── document_engine/    # OCR, tamper detection pipeline
-│   │   └── compliance_agent/   # Regulatory crawler & NLP agent
-│   ├── utils/                  # Helpers, preprocessing tools
-│   ├── requirements.txt
-│   └── main.py
-├── frontend/
-│   ├── src/
-│   │   ├── components/         # Reusable React components
-│   │   ├── pages/              # Dashboard, Upload, Compliance pages
-│   │   └── services/           # API integration layer
-│   └── package.json
-├── docker-compose.yml
-├── .env.example
+├── admin-dashboard/            # Next.js Admin Command Panel
+├── lib/                        # Flutter Client App Source (Views, Telemetry)
+├── infra/                      # Docker Compose Configuration & Local Setup
+│   ├── docker-compose.yml
+│   └── .env.example
+├── forensic_engine.py          # ELA & FFT Classifier Microservice
+├── behavioral_analytics_engine.py # Swipe & Keystroke Biometric Classifier
+├── scan.py                     # Local Developer CLI Tool
 └── README.md
 ```
 
@@ -223,11 +204,11 @@ SuRaksha-Setu/
 
 | Name | Role |
 |------|------|
+| Debansh | Team Lead · Architecture Design · AI/ML Engineering |
 | Procheta | UI/UX & Frontend Development |
 | Oishika | Backend Engineering |
 | Amrita | DevOps & Integration |
 | Shreya | AI/ML Engineering |
-| Debansh | Team Lead · Architecture Design · AI/ML Engineering |
 
 ---
 
@@ -235,18 +216,12 @@ SuRaksha-Setu/
 
 | Criterion | Our Approach |
 |-----------|-------------|
-| **Relevance to Theme** | Directly addresses both problem statements issued by Canara Bank |
-| **Innovation & Uniqueness** | Combines agentic AI with real-time document forensics in a single platform |
-| **Feasibility** | Modular architecture — each component can be deployed independently |
-| **Impact** | Targets fraud prevention and compliance automation for a bank serving crores of customers |
-| **Technical Execution** | ML + NLP + OCR pipeline with a production-ready REST API and dashboard |
-| **Real-World Scalability** | Containerized deployment, horizontally scalable, on-premise data residency |
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
+| **Relevance to Theme** | Directly addresses both document spoofing and device session safety statements issued by Canara Bank |
+| **Innovation & Uniqueness** | Combines continuous local behavioral biometrics with instant edge document forensics |
+| **Feasibility** | Modular containerized architecture — runs fully offline at the edge with zero external API costs |
+| **Impact** | Secures active banking sessions from physical snatches and automates KYC document fraud validation |
+| **Technical Execution** | Blended ML pipelines (Isolation Forest + OC-SVM) + Computer Vision (ELA/FFT) + Java/Spring REST APIs |
+| **Real-World Scalability** | Horizontal microservices scaling, offline-first execution, and secure on-premise data residency |
 
 ---
 

@@ -7,6 +7,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const tabs = [
     { id: "dashboard", label: "📊 Dashboard" },
     { id: "upload", label: "📤 Upload Asset" },
+    { id: "telemetry", label: "🤳 Live Telemetry" },
     { id: "analytics", label: "📈 Analytics" },
     { id: "documents", label: "📄 Documents" },
     { id: "settings", label: "⚙️ Settings" },

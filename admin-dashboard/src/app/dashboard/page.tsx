@@ -29,6 +29,160 @@ interface DocumentLog {
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
+
+  // Telemetry States
+  const [telemetryLogs, setTelemetryLogs] = useState<any[]>([]);
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [wsStatus, setWsStatus] = useState("disconnected");
+
+  const API_BASE_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost"
+      ? "http://localhost:8080"
+      : "https://suraksha-setu-production.up.railway.app");
+
+  // WebSocket connection handler
+  useEffect(() => {
+    let ws: WebSocket | null = null;
+    let reconnectTimeout: any = null;
+
+    const connectWS = () => {
+      setWsStatus("connecting");
+      const wsUrl = `${API_BASE_URL.replace(/^http/, "ws")}/ws/telemetry?accountId=demo_user`;
+      
+      try {
+        ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+          setWsStatus("connected");
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            setTelemetryLogs((prev) => [data, ...prev].slice(0, 100));
+          } catch (e) {
+            console.error("Failed to parse telemetry socket message", e);
+          }
+        };
+
+        ws.onerror = (err) => {
+          console.error("Telemetry WebSocket error", err);
+          setWsStatus("error");
+        };
+
+        ws.onclose = () => {
+          setWsStatus("disconnected");
+          reconnectTimeout = setTimeout(connectWS, 5000);
+        };
+      } catch (err) {
+        console.error("WebSocket setup failed", err);
+        setWsStatus("error");
+        reconnectTimeout = setTimeout(connectWS, 5000);
+      }
+    };
+
+    connectWS();
+
+    return () => {
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+    };
+  }, [API_BASE_URL]);
+
+  // Telemetry Simulation loop
+  useEffect(() => {
+    if (!isSimulating) return;
+
+    const gestures = [
+      {
+        type: "tap",
+        data: {
+          x_norm: 0.45,
+          y_norm: 0.72,
+          dwell_ms: 85,
+          force: 0.62,
+          contact_area_mm2: 12.5
+        },
+        risk: 0.08,
+        verdict: "AUTHENTIC",
+        message: "Key tap verified. Cadence inlier."
+      },
+      {
+        type: "swipe",
+        data: {
+          velocity_x: 0.85,
+          velocity_y: -0.15,
+          distance_px: 320,
+          duration_ms: 180,
+          curvature: 0.05
+        },
+        risk: 0.12,
+        verdict: "AUTHENTIC",
+        message: "Swipe gesture matched baseline curvature profile."
+      },
+      {
+        type: "gyroscope",
+        data: {
+          roll_deg_s: 14.5,
+          pitch_deg_s: -2.1,
+          yaw_deg_s: 0.8,
+          magnitude: 14.7
+        },
+        risk: 0.05,
+        verdict: "AUTHENTIC",
+        message: "Hand tremor profile verified. Device held stable."
+      },
+      {
+        type: "anomaly",
+        data: {
+          velocity_x: 4.8,
+          velocity_y: 2.1,
+          dwell_ms: 22,
+          roll_deg_s: 188.4,
+          curvature: 0.85
+        },
+        risk: 0.52,
+        verdict: "SUSPICIOUS",
+        message: "⚠️ Swipe anomaly warning: Sharp, rapid deviation from baseline curvature."
+      },
+      {
+        type: "lockout",
+        data: {
+          velocity_x: 9.2,
+          roll_deg_s: 412.5,
+          blended_score: 0.84
+        },
+        risk: 0.84,
+        verdict: "FRAUDULENT",
+        message: "🚨 Threat lockout: High-velocity rotation detected. Device session locked."
+      }
+    ];
+
+    let count = 0;
+    const interval = setInterval(() => {
+      const eventPick = gestures[count % gestures.length];
+      count++;
+
+      const mockPayload = {
+        user_id: "demo_user",
+        event_id: `sim-${Math.random().toString(36).substr(2, 9)}`,
+        client_timestamp: new Date().toISOString(),
+        type: eventPick.type,
+        details: eventPick.data,
+        risk_score: eventPick.risk,
+        verdict: eventPick.verdict,
+        message: eventPick.message
+      };
+
+      setTelemetryLogs((prev) => [mockPayload, ...prev].slice(0, 100));
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [isSimulating]);
   const [summary, setSummary] = useState({
     total: 0,
     high: 0,
@@ -47,12 +201,6 @@ export default function DashboardPage() {
 
   // Authentication State
   const [authToken, setAuthToken] = useState("");
-
-  const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_URL ||
-    (typeof window !== "undefined" && window.location.hostname === "localhost"
-      ? "http://localhost:8080"
-      : "https://suraksha-setu-production.up.railway.app");
 
   const loginAndGetToken = async () => {
     try {
@@ -226,6 +374,229 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <RiskDistributionChart summary={summary} />
                   <RiskTrendChart />
+                </div>
+              </div>
+            )}
+
+            {/* Tab: Live Telemetry */}
+            {activeTab === "telemetry" && (
+              <div className="space-y-8 animate-fade-in">
+                {/* Header Controls */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                  <div>
+                    <h2 className="text-xl font-bold text-white tracking-tight">
+                      🤳 Real-Time Behavioral Telemetry Audit
+                    </h2>
+                    <p className="text-sm text-slate-400 mt-1">
+                      Continuous active authentication tracking device sensors and touch models.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {/* Status Badge */}
+                    <div className="flex items-center gap-2 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2 text-xs font-semibold">
+                      <span className="text-slate-400">Socket:</span>
+                      {wsStatus === "connected" && (
+                        <span className="text-emerald-400 flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                          Connected
+                        </span>
+                      )}
+                      {wsStatus === "connecting" && (
+                        <span className="text-amber-400 flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+                          Connecting
+                        </span>
+                      )}
+                      {(wsStatus === "disconnected" || wsStatus === "error") && (
+                        <span className="text-rose-500 flex items-center gap-1.5">
+                          <span className="h-2.5 w-2.5 rounded-full bg-rose-500"></span>
+                          Offline
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Simulation Toggle */}
+                    <button
+                      onClick={() => setIsSimulating(!isSimulating)}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border ${
+                        isSimulating
+                          ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.2)]"
+                          : "bg-slate-700/50 border-slate-600 text-slate-300 hover:border-slate-500"
+                      }`}
+                    >
+                      {isSimulating ? "Stop Simulation" : "Demo Simulation"}
+                    </button>
+
+                    {/* Clear Button */}
+                    <button
+                      onClick={() => setTelemetryLogs([])}
+                      className="px-4 py-2 bg-slate-900/40 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 rounded-xl text-xs font-bold transition-all duration-200"
+                    >
+                      Clear Logs
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dashboard grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  {/* Left panel: Active sensor monitors */}
+                  <div className="space-y-6">
+                    {/* Isolation Forest Status */}
+                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+                        🌲 Isolation Forest Classifier
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Feature Dimensions</span>
+                          <span className="text-slate-200 font-semibold">14-Dimensional Vector</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Fitted Estimators</span>
+                          <span className="text-slate-200 font-semibold">100 Trees</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Current Input Pipeline</span>
+                          <span className="text-emerald-400 font-semibold">Active</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* One-Class SVM status */}
+                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+                        📈 One-Class SVM Classifier
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Profile Dimensions</span>
+                          <span className="text-slate-200 font-semibold">7-Dimensional Rhythm</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">RBF Gamma Kernel</span>
+                          <span className="text-slate-200 font-semibold">Scale (0.015)</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="text-slate-400">Rhythm Classifier</span>
+                          <span className="text-emerald-400 font-semibold">Active</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Blending Configuration */}
+                    <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
+                        ⚙️ Scoring Weights
+                      </h3>
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span className="text-slate-300">Isolation Forest (IF) Weight</span>
+                            <span className="text-slate-400">55%</span>
+                          </div>
+                          <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full" style={{ width: "55%" }}></div>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span className="text-slate-300">One-Class SVM Weight</span>
+                            <span className="text-slate-400">45%</span>
+                          </div>
+                          <div className="h-1.5 bg-slate-900 rounded-full overflow-hidden">
+                            <div className="h-full bg-indigo-500 rounded-full" style={{ width: "45%" }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right panel (takes 2 columns): Real-time logs list */}
+                  <div className="lg:col-span-2 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl flex flex-col h-[600px]">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                      📋 Real-Time Threat Stream
+                      {isSimulating && (
+                        <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md font-semibold tracking-normal normal-case animate-pulse">
+                          Simulation Mode
+                        </span>
+                      )}
+                    </h3>
+
+                    <div className="flex-grow overflow-y-auto space-y-4 pr-1 min-h-0">
+                      {telemetryLogs.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
+                          <span className="text-3xl">📭</span>
+                          <p className="text-xs">No telemetry logs captured yet.</p>
+                          <p className="text-[11px] text-slate-600 max-w-[280px] text-center">
+                            Connect your Flutter app or enable "Demo Simulation" above to display telemetry feeds.
+                          </p>
+                        </div>
+                      ) : (
+                        telemetryLogs.map((log, idx) => (
+                          <div
+                            key={log.event_id || idx}
+                            className={`border rounded-xl p-4 transition-all duration-200 ${
+                              log.verdict === "FRAUDULENT"
+                                ? "bg-red-950/20 border-red-900/50"
+                                : log.verdict === "SUSPICIOUS"
+                                ? "bg-amber-950/20 border-amber-800/50"
+                                : "bg-slate-900/40 border-slate-800"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start gap-4 mb-2.5">
+                              <div>
+                                <span className="text-[10px] text-slate-500 font-semibold font-mono">
+                                  {new Date(log.client_timestamp).toLocaleTimeString()}
+                                </span>
+                                <h4 className="text-xs font-bold text-slate-200 mt-0.5">
+                                  User: <span className="text-slate-400 font-normal">{log.user_id}</span>
+                                </h4>
+                              </div>
+                              <span
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
+                                  log.verdict === "FRAUDULENT"
+                                    ? "bg-red-500/20 text-red-400 border border-red-500/30"
+                                    : log.verdict === "SUSPICIOUS"
+                                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
+                                    : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                                }`}
+                              >
+                                {log.verdict}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-slate-300 font-medium mb-3">
+                              {log.message || `Telemetry frame received: type ${log.type}`}
+                            </p>
+
+                            {/* Details expander */}
+                            <div className="bg-slate-950/60 border border-slate-900 rounded-lg p-3 text-[10px] font-mono text-slate-400 grid grid-cols-2 md:grid-cols-3 gap-2">
+                              <div>
+                                <span className="text-slate-600 block">Event Type</span>
+                                <span className="text-slate-300 font-semibold uppercase">{log.type}</span>
+                              </div>
+                              <div>
+                                <span className="text-slate-600 block">Anomaly Risk</span>
+                                <span className={`font-semibold ${log.risk_score > 0.6 ? "text-red-400" : log.risk_score > 0.4 ? "text-amber-400" : "text-emerald-400"}`}>
+                                  {Math.round(log.risk_score * 100)}%
+                                </span>
+                              </div>
+                              <div className="col-span-2 md:col-span-1">
+                                <span className="text-slate-600 block">ID</span>
+                                <span className="text-slate-400 select-all truncate block">{log.event_id}</span>
+                              </div>
+                              {log.details && Object.entries(log.details).map(([k, v]: any) => (
+                                <div key={k}>
+                                  <span className="text-slate-600 block">{k}</span>
+                                  <span className="text-slate-300 truncate block">{typeof v === 'number' ? v.toFixed(3) : String(v)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

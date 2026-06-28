@@ -67,7 +67,7 @@ public class SecurityConfiguration {
                                 .requestMatchers("/api/v1/documents/**").authenticated()
                                 .requestMatchers("/api/v1/account/**").authenticated()
                                 .requestMatchers("/api/v1/transactions").authenticated()
-                                .requestMatchers("/ws/telemetry/**").authenticated()
+                                .requestMatchers("/ws/telemetry/**").permitAll()
                                 .anyRequest().authenticated())
                 .addFilterBefore(this.customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

@@ -29,6 +29,7 @@ interface DocumentLog {
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [loading, setLoading] = useState(true);
+  const [authToken, setAuthToken] = useState("");
 
   // Telemetry States
   const [telemetryLogs, setTelemetryLogs] = useState<any[]>([]);
@@ -202,7 +203,6 @@ export default function DashboardPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Authentication State
-  const [authToken, setAuthToken] = useState("");
 
   const loginAndGetToken = async () => {
     try {

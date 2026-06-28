@@ -1272,6 +1272,24 @@ async def analyze_document(
             overall_score = max(overall_score, 0.90)
             fraud_indicators.append(f"Suspicious filename pattern indicating generated/altered source ('{file.filename}')")
             
+        # Check PDF metadata for suspicious tools/converters
+        if file.filename and file.filename.lower().endswith('.pdf') and pdf_metadata:
+            suspicious_tool = False
+            matched_tool = ""
+            for val in pdf_metadata.values():
+                val_lower = val.lower()
+                for tool in ["ilovepdf", "pdfescape", "acrobat", "edit", "sejda", "smallpdf", "convertapi", "pdfedit"]:
+                    if tool in val_lower:
+                        suspicious_tool = True
+                        matched_tool = tool
+                        break
+                if suspicious_tool:
+                    break
+            
+            if suspicious_tool:
+                overall_score = max(overall_score, 0.75)
+                fraud_indicators.append(f"Metadata indicates document was processed using suspicious tool/API ('{matched_tool}')")
+            
         verdict = _compute_verdict(overall_score)
     else:
         # Native PDF fallback (no images found)

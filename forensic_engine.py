@@ -1287,8 +1287,12 @@ async def analyze_document(
                     break
             
             if suspicious_tool:
-                overall_score = max(overall_score, 0.75)
-                fraud_indicators.append(f"Metadata indicates document was processed using suspicious tool/API ('{matched_tool}')")
+                if matched_tool == "convertapi":
+                    overall_score = max(overall_score, 0.75)
+                    fraud_indicators.append(f"Metadata indicates document was generated using developer API ('{matched_tool}')")
+                else:
+                    overall_score = max(overall_score, 0.35)
+                    fraud_indicators.append(f"Metadata indicates document was processed using consumer PDF tool ('{matched_tool}')")
             
         verdict = _compute_verdict(overall_score)
     else:

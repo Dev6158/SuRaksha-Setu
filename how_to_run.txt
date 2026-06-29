@@ -1,0 +1,59 @@
+======================================================================
+🛡️  SURAKSHA-SETU: LOCAL SETUP & RUN GUIDE
+======================================================================
+
+Follow these steps to run the entire backend container stack and the 
+Next.js admin dashboard locally on your machine.
+
+----------------------------------------------------------------------
+1. PULL THE LATEST CODE FIXES
+----------------------------------------------------------------------
+Ensure you are on the development branch and pull the latest changes
+(this includes the TypeScript compiler fix and the database seeder):
+
+   git checkout dev
+   git pull origin dev
+
+----------------------------------------------------------------------
+2. CONFIGURE LOCAL ENVIRONMENT VARIABLES
+----------------------------------------------------------------------
+Initialize your local environment variable file inside the infra folder:
+
+   cd infra
+   cp .env.example .env
+
+----------------------------------------------------------------------
+3. BUILD & START THE DOCKER STACK
+----------------------------------------------------------------------
+Spin up the PostgreSQL database, Redis cache, Spring Boot core API,
+and Python ML forensics containers:
+
+   docker compose down --remove-orphans
+   docker compose up -d --build
+
+* Note: On first run, the database seeder will automatically inject 
+  the default demo user account (demo_user / password123) into Postgres.
+
+----------------------------------------------------------------------
+4. START THE NEXT.JS ADMIN DASHBOARD
+----------------------------------------------------------------------
+Run the Next.js development server locally on your host machine:
+
+   cd ../admin-dashboard
+   npm install
+   npm run dev
+
+* Visit the dashboard in your browser:
+  http://localhost:3000/dashboard (or http://localhost:3001/dashboard)
+
+----------------------------------------------------------------------
+5. RUN CLI SCANS (OPTIONAL)
+----------------------------------------------------------------------
+To test the forensics engine directly from your command line:
+
+   cd ..
+   ./scan.py Aadhar_02.pdf
+
+======================================================================
+Secure India, Digital India • Canara Bank Cyber Hackathon 2.0
+======================================================================

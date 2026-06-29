@@ -387,7 +387,7 @@ export default function DashboardPage() {
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
                   <div>
                     <h2 className="text-xl font-bold text-white tracking-tight">
-                      🤳 Real-Time Behavioral Telemetry Audit
+                      Real-Time Behavioral Telemetry Audit
                     </h2>
                     <p className="text-sm text-slate-400 mt-1">
                       Continuous active authentication tracking device sensors and touch models.
@@ -446,7 +446,7 @@ export default function DashboardPage() {
                     {/* Isolation Forest Status */}
                     <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-                        🌲 Isolation Forest Classifier
+                        Isolation Forest Classifier
                       </h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
@@ -467,7 +467,7 @@ export default function DashboardPage() {
                     {/* One-Class SVM status */}
                     <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-                        📈 One-Class SVM Classifier
+                        One-Class SVM Classifier
                       </h3>
                       <div className="space-y-4">
                         <div className="flex justify-between items-center text-xs">
@@ -488,7 +488,7 @@ export default function DashboardPage() {
                     {/* Blending Configuration */}
                     <div className="bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4">
-                        ⚙️ Scoring Weights
+                        Scoring Weights
                       </h3>
                       <div className="space-y-4">
                         <div className="space-y-1.5">
@@ -516,7 +516,7 @@ export default function DashboardPage() {
                   {/* Right panel (takes 2 columns): Real-time logs list */}
                   <div className="lg:col-span-2 bg-slate-800/40 backdrop-blur-md border border-slate-700/50 rounded-2xl p-6 shadow-2xl flex flex-col h-[600px]">
                     <h3 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
-                      📋 Real-Time Threat Stream
+                      Real-Time Threat Stream
                       {isSimulating && (
                         <span className="text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md font-semibold tracking-normal normal-case animate-pulse">
                           Simulation Mode
@@ -527,7 +527,9 @@ export default function DashboardPage() {
                     <div className="flex-grow overflow-y-auto space-y-4 pr-1 min-h-0">
                       {telemetryLogs.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2">
-                          <span className="text-3xl">📭</span>
+                          <svg className="h-10 w-10 text-slate-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
                           <p className="text-xs">No telemetry logs captured yet.</p>
                           <p className="text-[11px] text-slate-600 max-w-[280px] text-center">
                             Connect your Flutter app or enable "Demo Simulation" above to display telemetry feeds.
@@ -730,7 +732,9 @@ export default function DashboardPage() {
                         required
                       />
                       <div className="space-y-2">
-                        <div className="text-4xl text-slate-500 group-hover:text-blue-400 transition-colors duration-150">📂</div>
+                        <svg className="h-10 w-10 mx-auto text-slate-500 group-hover:text-blue-400 transition-colors duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
                         {uploadFile ? (
                           <div className="text-sm font-semibold text-white">
                             Selected: <span className="text-blue-400">{uploadFile.name}</span> ({(uploadFile.size / 1024).toFixed(1)} KB)
@@ -776,15 +780,21 @@ export default function DashboardPage() {
                         </>
                       ) : (
                         <>
-                          <span>🛡️</span> Run Forensic Scan
+                          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                          </svg>
+                          <span>Run Forensic Scan</span>
                         </>
                       )}
                     </button>
                   </form>
 
                   {uploadError && (
-                    <div className="mt-6 p-4 bg-red-950/50 border border-red-900/50 rounded-lg text-sm text-red-400">
-                      ⚠️ {uploadError}
+                    <div className="mt-6 p-4 bg-red-950/50 border border-red-900/50 rounded-lg text-sm text-red-400 flex items-center gap-2">
+                      <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <span>{uploadError}</span>
                     </div>
                   )}
                 </div>

@@ -37,7 +37,6 @@ def main():
     print("=============================================================")
     
     # 2. Login to local backend
-    import os
     username = os.getenv("DEMO_USER_USERNAME", "demo_user")
     password = os.getenv("DEMO_USER_PASSWORD", "password123")
     user_credentials = {"username": username, "password": password}

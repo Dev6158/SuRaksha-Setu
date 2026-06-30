@@ -1224,6 +1224,7 @@ async def analyze_document(
             fraud_indicators=fraud_indicators,
         )
 
+    extracted_text = ""
     if is_pdf:
         try:
             reader = PdfReader(io.BytesIO(raw_bytes))

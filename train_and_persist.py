@@ -106,14 +106,17 @@ def generate_synthetic_dataset(
 
     def _anomaly_users(n: int) -> dict[str, np.ndarray]:
         return {
-            "session_duration_s":  rng.choice(
-                [rng.uniform(0, 5, n), rng.uniform(3_500, 3_600, n)],
-                axis=0,
-            ).diagonal(),
+            "session_duration_s":  np.where(
+                rng.random(n) < 0.5,
+                rng.uniform(0, 5, n),
+                rng.uniform(3_500, 3_600, n)
+            ),
             "pages_per_session":   rng.uniform(100, 500, n),
-            "click_rate_per_min":  rng.choice([rng.uniform(0, 0.05, n),
-                                               rng.uniform(50, 200, n)],
-                                              axis=0).diagonal(),
+            "click_rate_per_min":  np.where(
+                rng.random(n) < 0.5,
+                rng.uniform(0, 0.05, n),
+                rng.uniform(50, 200, n)
+            ),
             "error_rate":          rng.uniform(0.5, 1.0, n),
             "night_hour_ratio":    rng.uniform(0.8, 1.0, n),
             "device_type_encoded": rng.choice([0, 1, 2], n),
@@ -243,7 +246,7 @@ class CalibratedIFPipeline:
             "threshold": self.threshold,
             "schema_version": "1.0",
         }
-        joblib.dump(payload, path, compress=("lz4", 3), protocol=5)
+        joblib.dump(payload, path, compress=3, protocol=5)
         size_kb = path.stat().st_size / 1_024
         log.info("Model serialised → %s  (%.1f KB)", path, size_kb)
 

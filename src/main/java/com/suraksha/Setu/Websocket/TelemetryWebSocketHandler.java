@@ -16,6 +16,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.suraksha.Setu.Security.JwtTokenService;
+
 @Component
 public class TelemetryWebSocketHandler extends TextWebSocketHandler {
 
@@ -24,24 +26,53 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
     private final RedisTemplate<String, String> redisTemplate;
     private final WebClient webClient;
     private final String riskEvaluationPath;
+    private final JwtTokenService jwtTokenService;
 
     public TelemetryWebSocketHandler(
             RedisTemplate<String, String> redisTemplate,
             WebClient.Builder webClientBuilder,
             @Value("${ml.fastapi.base-url:http://localhost:8000}") String fastApiBaseUrl,
-            @Value("${ml.fastapi.risk-path:/score}") String riskEvaluationPath) {
+            @Value("${ml.fastapi.risk-path:/score}") String riskEvaluationPath,
+            JwtTokenService jwtTokenService) {
         this.activeSessions = new ConcurrentHashMap<>();
         this.sessionUsers = new ConcurrentHashMap<>();
         this.redisTemplate = redisTemplate;
         this.webClient = webClientBuilder.baseUrl(fastApiBaseUrl).build();
         this.riskEvaluationPath = riskEvaluationPath;
+        this.jwtTokenService = jwtTokenService;
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession webSocketSession) throws Exception {
+        String token = getQueryParam(webSocketSession.getUri(), "token");
+        if (token == null || token.isBlank()) {
+            webSocketSession.close(CloseStatus.POLICY_VIOLATION);
+            return;
+        }
+
+        try {
+            this.jwtTokenService.decodeAndValidateClaims(token);
+        } catch (Exception e) {
+            webSocketSession.close(CloseStatus.POLICY_VIOLATION);
+            return;
+        }
+
         String accountId = resolveAccountId(webSocketSession);
         this.activeSessions.put(webSocketSession.getId(), webSocketSession);
         this.sessionUsers.put(webSocketSession.getId(), accountId);
+    }
+
+    private String getQueryParam(java.net.URI uri, String paramName) {
+        if (uri == null || uri.getQuery() == null) {
+            return null;
+        }
+        for (String param : uri.getQuery().split("&")) {
+            String[] entry = param.split("=");
+            if (entry.length > 1 && paramName.equals(entry[0])) {
+                return entry[1];
+            }
+        }
+        return null;
     }
 
     @Override
@@ -57,12 +88,31 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
         String redisKey = "telemetry:matrix:" + accountId + ":" + Instant.now().toEpochMilli();
         this.redisTemplate.opsForValue().set(redisKey, trackingMatrix, Duration.ofMinutes(10));
 
-        String evaluationPayload = "{"
-                + "\"accountId\":\"" + escapeJson(accountId) + "\","
-                + "\"sessionId\":\"" + escapeJson(webSocketSession.getId()) + "\","
-                + "\"trackingMatrix\":" + trackingMatrix + ","
-                + "\"receivedAt\":\"" + Instant.now() + "\""
-                + "}";
+        String swipe = extractJsonField(trackingMatrix, "swipe");
+        String tap = extractJsonField(trackingMatrix, "tap");
+        String gyroscope = extractJsonField(trackingMatrix, "gyroscope");
+        String interactionPattern = extractJsonField(trackingMatrix, "interaction_pattern");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        sb.append("\"user_id\":\"").append(escapeJson(accountId)).append("\",");
+        sb.append("\"event_id\":\"").append(escapeJson(webSocketSession.getId())).append("\",");
+        sb.append("\"client_timestamp\":\"").append(Instant.now().toString()).append("\"");
+        
+        if (swipe != null && !swipe.isBlank() && !"null".equals(swipe)) {
+            sb.append(",\"swipe\":").append(swipe);
+        }
+        if (tap != null && !tap.isBlank() && !"null".equals(tap)) {
+            sb.append(",\"tap\":").append(tap);
+        }
+        if (gyroscope != null && !gyroscope.isBlank() && !"null".equals(gyroscope)) {
+            sb.append(",\"gyroscope\":").append(gyroscope);
+        }
+        if (interactionPattern != null && !interactionPattern.isBlank() && !"null".equals(interactionPattern)) {
+            sb.append(",\"interaction_pattern\":").append(interactionPattern);
+        }
+        sb.append("}");
+        String evaluationPayload = sb.toString();
 
         CompletableFuture.runAsync(() -> evaluateRiskAndReturnFrame(webSocketSession, evaluationPayload));
     }
@@ -215,6 +265,9 @@ public class TelemetryWebSocketHandler extends TextWebSocketHandler {
 
     private String resolveAccountId(WebSocketSession webSocketSession) {
         Object principal = webSocketSession.getPrincipal();
+        if (principal instanceof java.security.Principal) {
+            return ((java.security.Principal) principal).getName();
+        }
         if (principal != null && principal.toString() != null) {
             return principal.toString();
         }

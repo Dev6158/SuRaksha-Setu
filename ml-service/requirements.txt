@@ -26,3 +26,7 @@ pydantic>=2.10.0
 # ── Computer vision (headless — no display server needed) ─────────────────────
 opencv-python-headless>=4.10.0
 Pillow>=11.0.0
+pillow-heif>=1.4.0
+
+# ── PDF Processing ────────────────────────────────────────────────────────────
+pypdf>=5.0.0

@@ -1,0 +1,27 @@
+<OfflinePaperlessKyc referenceId="925020190122165455195">
+<UidData>
+<Poi dob="02-11-1995" e="076586c63449b7bd6be397...." gender="male" m="b6ecbb2c0f9b5678de8bce3bcd8155..." name="Madhu n"/>
+<Poa country="#COUNTRY" dist="kozhikode" house="valanattu house update1" loc="malaparamba update1" pc="673009" po="malaparamba" state="32" street="malaparamba update1" subdist="005420" vtc="malaparamba"/>
+<Pht>/9j/4AAQSkZJRgABAgAAAQABAAD.....</Pht>
+</UidData>
+<Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+<SignedInfo>
+<CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+<SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+<Reference URI="">
+<Transforms>
+<Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+</Transforms>
+<DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/>
+<DigestValue>WYqBFc...</DigestValue>
+</Reference>
+</SignedInfo>
+<SignatureValue>fUledlM0faNmeJiDrZc2/...</SignatureValue>
+<KeyInfo>
+<X509Data>
+<X509SubjectName>CN=hcl-aua,OU=hcl-aua...</X509SubjectName>
+<X509Certificate>MIIDjTCCAnWgAwIBAgIEYhPg...</X509Certificate>
+</X509Data>
+</KeyInfo>
+</Signature>
+</OfflinePaperlessKyc>

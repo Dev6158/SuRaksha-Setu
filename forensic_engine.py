@@ -1279,7 +1279,7 @@ async def analyze_document(
     fraud_indicators = []
 
     # Define common fake/test keywords to search in filenames, metadata, OCR, and QR payloads
-    fake_keywords = ["fake", "ronaldo", "cristiano", "dummy", "specimen", "sample", "test user", "invalid", "999988887777", "9999 8888 7777"]
+    fake_keywords = ["fake", "ronaldo", "cristiano", "dummy", "specimen", "sample copy", "test user", "dummy user", "999988887777", "9999 8888 7777"]
 
     if image_bgr is not None:
         H, W, C = image_bgr.shape
@@ -1364,11 +1364,14 @@ async def analyze_document(
                 fraud_indicators.append(f"Document contains explicit fraudulent text: {', '.join(matched_texts)}")
 
         # 7. TRUST FACTOR (False Positive Mitigation):
-        # If the document has a valid, structured QR code and NO fraud indicators,
-        # we reward it by capping the risk to a safe range (even with ELA/FFT noise from real scans).
-        if qr_detected and qr_data and len(fraud_indicators) == 0:
+        # If the document has a valid, structured QR code and NO critical fraud indicators (like fake text keywords),
+        # we trust it even if it is a flat digital template or has high ELA/FFT scan noise.
+        has_critical_fraud = any("explicit fraudulent text" in ind or "simulated/mockup keyword" in ind or "Digital Signature block is missing" in ind or "Signature check failed" in ind for ind in fraud_indicators)
+        if qr_detected and qr_data and not has_critical_fraud:
             # If it looks like a valid Aadhaar secure XML or standard ID payload
             if "<OfflinePaperlessKyc" in qr_data or "<UidData" in qr_data or len(qr_data) > 100:
+                # Remove the digital flatness warning since a valid QR validates the digital card
+                fraud_indicators = [ind for ind in fraud_indicators if "Digital native template" not in ind]
                 overall_score = 0.08
                 log.info("REQUEST %s | Verified structured QR payload. Capping risk to 0.08 (Authentic)", request_id)
 
